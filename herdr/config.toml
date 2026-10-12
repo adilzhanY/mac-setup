@@ -1,0 +1,74 @@
+onboarding = false
+# herdr configuration
+
+[theme]
+# Follow the terminal's light/dark state, which flips with the desktop at
+# 06:00 and 19:00 (end4-daynight.timer). Without this, the dark theme's
+# selection surfaces sat on a white terminal background as hard dark blocks.
+name = "kanagawa"
+auto_switch = true
+dark_name = "kanagawa"
+light_name = "catppuccin-latte"
+
+[theme.custom]
+# Let kitty's background show straight through the sidebar/panels.
+panel_bg = "reset"
+# The active tab's background is the accent token, and its label is drawn in
+# the theme's base color: near-white on the light theme, near-black on the
+# dark one. This grey is the one value that keeps a readable contrast in both
+# directions, so the selected tab reads as a quiet chip instead of a colored
+# slab. Agent status colors (green, yellow, red) are untouched.
+accent = "#7a7a7a"
+
+[terminal]
+# kitty.conf sets `shell fish`, but herdr panes follow $SHELL (bash), so set it here too.
+default_shell = "fish"
+
+[experimental]
+# Render images through kitty's graphics protocol (host terminal is kitty).
+kitty_graphics = true
+
+[ui.sound]
+enabled = true
+
+[ui.toast]
+delivery = "off"
+
+[ui]
+show_agent_labels_on_pane_borders = true
+
+agent_panel_sort = "priority"
+[keys]
+# Prefix is ctrl+a rather than the ctrl+b default: it sits under the left hand
+# without stretching. herdr has no send-prefix escape hatch (there is no
+# send_prefix / literal_prefix action), so ctrl+a is swallowed in every pane.
+# That costs "jump to start of line" in fish (use Home instead) and the
+# increment-number command in nvim.
+prefix = "ctrl+a"
+
+# Prefix-free chords, so the common moves are one keystroke instead of two.
+# Each action keeps its prefix binding as well, so nothing that already works
+# stops working; the ctrl+alt chord is just a faster second way in.
+#
+# ctrl+alt was chosen because nothing in Hyprland, kitty or nvim binds it.
+# Avoided on purpose: ctrl+alt+arrows, ctrl+alt+t and ctrl+alt+f1..f12, which
+# the OS and terminals tend to take for themselves.
+#
+# Pane focus mirrors nvim's own ctrl+h/j/k/l window navigation, one modifier up.
+focus_pane_left  = ["prefix+h", "ctrl+alt+h"]
+focus_pane_down  = ["prefix+j", "ctrl+alt+j"]
+focus_pane_up    = ["prefix+k", "ctrl+alt+k"]
+focus_pane_right = ["prefix+l", "ctrl+alt+l"]
+
+# The two that prompted this: tab switching with no prefix.
+previous_tab = ["prefix+p", "ctrl+alt+["]
+next_tab     = ["prefix+n", "ctrl+alt+]"]
+
+new_tab           = ["prefix+c", "ctrl+alt+c"]
+split_vertical    = ["prefix+v", "ctrl+alt+d"]
+split_horizontal  = ["prefix+minus", "ctrl+alt+shift+d"]
+zoom              = ["prefix+z", "ctrl+alt+z"]
+close_pane        = ["prefix+x", "ctrl+alt+w"]
+close_tab         = ["prefix+X", "ctrl+alt+shift+w"]
+rename_tab        = ["prefix+,", "ctrl+alt+r"]
+toggle_sidebar    = ["prefix+b", "ctrl+alt+b"]

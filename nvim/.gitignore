@@ -1,0 +1,36 @@
+# Neovim generated files
+lua/config/saved_theme
+plugin/
+.netrwhist
+
+# Vim-plug directory
+plugged/
+
+# Lazy.nvim directory (if you switch later)
+lazy-lock.json
+
+# LSP/Mason installed servers
+mason/
+
+# Swap files
+*.swp
+*.swo
+*~
+
+# Session files
+Session.vim
+.session
+
+# Tags
+tags
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Node
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db

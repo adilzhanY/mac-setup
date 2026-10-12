@@ -1,0 +1,16 @@
+{
+  "name": "savvy-progress",
+  "version": "2.0.0",
+  "description": "Terminal edition: the savvy-flow progress bar above the prompt and an agents panel (/agents-info) of costumed pixel crabs that walk while they work, with model, steps, context, cost and time.",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "language": {
+      "type": "string",
+      "title": "Panel language",
+      "description": "auto follows Claude Code's language setting, then the system locale",
+      "default": "auto",
+      "options": ["auto", "en", "ru"]
+    }
+  },
+  "license": "MIT"
+}

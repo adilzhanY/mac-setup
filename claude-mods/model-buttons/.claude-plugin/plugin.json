@@ -1,0 +1,5 @@
+{
+  "name": "model-buttons",
+  "version": "0.1.0",
+  "description": "Buttons on the hint line under the prompt that switch the model with one click"
+}

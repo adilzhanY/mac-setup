@@ -1,0 +1,5 @@
+{
+  "name": "stats-card",
+  "version": "0.1.0",
+  "description": "A usage card under the logo at the start of a session: sessions, messages, tokens, peak hour, favorite model, an activity heatmap and a models breakdown"
+}
