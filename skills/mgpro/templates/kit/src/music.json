@@ -1,0 +1,104 @@
+{
+  "film": "example",
+  "genre": "afrobeats",
+  "bpm": 105.88,
+  "key": "D",
+  "mode": "mixolydian",
+  "mood": "playful",
+  "seed": 41,
+  "length": 30.0,
+  "character": "wood",
+  "palette": {
+    "lead": "steel",
+    "keys": "harp",
+    "bass": "pluck"
+  },
+  "drums": {
+    "conga": "..x..x.x...x.x.."
+  },
+  "hook": {
+    "seed": 7,
+    "contour": "arch",
+    "notes": 5,
+    "low": 69
+  },
+  "signature": "a steel drum call answered by a harp, over a tresillo kick",
+  "form": [
+    {
+      "name": "cold",
+      "bars": 2,
+      "energy": 0.9,
+      "parts": [
+        "drums",
+        "bass",
+        "hook",
+        "crash"
+      ]
+    },
+    {
+      "name": "verse",
+      "bars": 3,
+      "energy": 0.55,
+      "parts": [
+        "kick",
+        "rim",
+        "shaker",
+        "bass",
+        "pad"
+      ]
+    },
+    {
+      "name": "lift",
+      "bars": 2,
+      "energy": 0.75,
+      "parts": [
+        "drums",
+        "bass",
+        "chords",
+        "hook_sparse",
+        "fill"
+      ]
+    },
+    {
+      "name": "gap",
+      "bars": 0.25,
+      "energy": 0,
+      "parts": [
+        "silence"
+      ]
+    },
+    {
+      "name": "drop",
+      "bars": 3.75,
+      "energy": 1.0,
+      "parts": [
+        "drums",
+        "bass",
+        "chords",
+        "pad",
+        "hook",
+        "crash"
+      ]
+    },
+    {
+      "name": "breath",
+      "bars": 1,
+      "energy": 0.5,
+      "parts": [
+        "pad",
+        "hook_sparse",
+        "shaker"
+      ]
+    },
+    {
+      "name": "end",
+      "bars": 2,
+      "energy": 0.8,
+      "parts": [
+        "pad",
+        "bass",
+        "crash"
+      ]
+    }
+  ]
+}

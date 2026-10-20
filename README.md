@@ -42,6 +42,7 @@ Ask these before starting, in one message:
 | `claude/hooks/notify.sh` | `~/.claude/hooks/notify.sh` | Notification and sound when Claude finishes |
 | `claude-mods/` | `~/dev/claude-mods/` | Claude Code mods: Clawd, model buttons, stats card, savvy-progress |
 | `skills/caveman/` | `~/.claude/skills/caveman/` | The caveman skill, with the user's own edits |
+| `skills/mgpro/` | `~/.claude/skills/mgpro/` | mgpro: Apple-style motion graphics videos with Remotion, three.js and synthesized sound |
 | `herdr/config.toml` | `~/.config/herdr/config.toml` | herdr, the terminal workspace for AI agents |
 
 ---
@@ -275,7 +276,7 @@ cp claude/CLAUDE.md claude/settings.json claude/statusline.sh ~/.claude/
 cp claude/hooks/notify.sh ~/.claude/hooks/
 chmod +x ~/.claude/statusline.sh ~/.claude/hooks/notify.sh
 cp -R claude-mods ~/dev/claude-mods
-cp -R skills/caveman ~/.claude/skills/
+cp -R skills/caveman skills/mgpro ~/.claude/skills/
 ```
 
 The mods must live at exactly `~/dev/claude-mods`: `settings.json` loads them from there through `CLAUDE_CODE_PLUGIN_DIRS`, and the stats card runs `~/dev/claude-mods/stats-card/scripts/stats.mjs`. Make `~/dev/claude-mods` a git repo with a first commit so later edits are tracked (`git init && git add -A && git commit -m "Claude Code mods"`), and ask the user before pushing it anywhere.
@@ -321,7 +322,7 @@ uv tool install graphifyy && graphify install          # /graphify: codebase to 
 
 Pick Claude Code as the target when `skills add` asks. `caveman` was copied above (it holds the user's own edits, so do not reinstall it from upstream). no-mistakes is a local git gate (review, test, lint, push, PR, CI) with its own skill. Install its skill too if the installer does not; its README says how.
 
-Do not install the user's personal skills (language learning, video, logo and their own Linux apps). They are not in this folder on purpose.
+Do not install the user's personal skills (language learning, logo and their own Linux apps). They are not in this folder on purpose.
 
 Check, in a fresh `claude` session:
 - The status line shows folder, branch and percentages.
