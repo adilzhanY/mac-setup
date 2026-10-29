@@ -2,6 +2,22 @@
 
 Read this before leaning on a psychology effect to justify a design. Each principle below gives the strength of the evidence, the rule that the evidence actually supports, and the claims from the source videos that go further than the research does. The full entries, with citations, URLs and numbers, are in `sources/articles/cited-research.md`.
 
+## Contents
+
+1. At a glance
+2. Defaults
+3. Choice overload
+4. Goal gradient
+5. Endowed progress
+6. IKEA effect and endowment
+7. Reciprocity
+8. Loss aversion and loss framing
+9. Contrast, anchoring and decoys
+10. Fluency, aesthetics and premium perception
+11. Consistency
+12. Service recovery
+13. Also checked
+
 Strength scale:
 
 - **Strong**: large, replicated, meta-analysed, holds across settings.

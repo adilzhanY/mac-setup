@@ -2,6 +2,8 @@
 
 How to review a design, your own or someone else's, so the review finds real problems instead of matters of taste. Each technique has a version for when you can see the UI and a version for when you only have the code.
 
+Review like the person who will be called when it breaks; audit like the one who just inherited it. A review lists findings and changes no code unless the user asked for fixes. The review and report rules in sections 12 to 14 come from the ponytail plugin's review and audit skills, translated to UI.
+
 ## Contents
 
 1. Order of the review
@@ -15,14 +17,20 @@ How to review a design, your own or someone else's, so the review finds real pro
 9. Rank the actions (spectrum of explicitness)
 10. Design theater audit
 11. Use it for an hour
-12. Writing the critique
-13. Checks
+12. Lean pass
+13. Auditing a whole app
+14. Writing the critique
+15. Checks
 
 ---
 
 ## 1. Order of the review
 
 Review from the foundation up, the same order the redesign method uses: content and media, grid and alignment, colour, type, hierarchy, information placement, states, flow. A colour comment is wasted if the layout is about to change.
+
+**What to review.** When the user names nothing, review the uncommitted changes, else the last commit. A named file, branch or PR replaces that default.
+
+**Read past the diff.** Open every screen that imports a component, prop or token the change touched, not only the changed files. A renamed prop or a changed token breaks screens the diff never shows. Ponytail's review measurement: problems outside the diff were found 100% of the time with this rule against 78% without it.
 
 ## 2. Squint and blur test
 
@@ -40,9 +48,11 @@ Review from the foundation up, the same order the redesign method uses: content 
 
 1. Swap the variable content: a dark image, a bright image, a busy image, no image. Every overlay (icons, text) still readable?
 2. Longest realistic text in every field (a 40 character name, a German translation, a 12 digit amount). Does it wrap or truncate as designed?
-3. Shortest content: one item, zero items, a 1 character name.
-4. The full catalog: would this image or card style still look right next to 20 others in a grid?
-5. Code only: find every text binding and image binding; for each, state the minimum and maximum realistic value and compute whether it fits (font px times characters times about 0.55 against the box width).
+3. Shortest content: one item, zero items, a 1 character name, the last item removed.
+4. Edge values: zero and negative amounts, rounding (3 items at a third each), another time zone, a date across midnight or a daylight saving change.
+5. Volume: 3 rows or 30,000, one user or a team of 200. Find the expected size in the project (README, seed data, the product's pitch) and write the size you assumed in the review.
+6. The full catalog: would this image or card style still look right next to 20 others in a grid?
+7. Code only: find every text binding and image binding; for each, state the minimum and maximum realistic value and compute whether it fits (font px times characters times about 0.55 against the box width).
 
 ## 5. Screen 80 next to screen 1
 
@@ -51,6 +61,7 @@ Review from the foundation up, the same order the redesign method uses: content 
 1. Lay every screen side by side (or list them). Check nav position, header height, title size, spacing, button styles, wording, icon set, empty and error patterns.
 2. Code only: list the components and tokens each route uses. Any route with local styles where a shared component exists, or a different value for the same role, fails.
 3. Write down "every spot where it stops feeling like the same product". Fix each.
+4. A fix applied in one screen while the shared component or token stays broken is a finding of its own.
 
 ## 6. Break it on purpose
 
@@ -96,23 +107,52 @@ AI tools state reasoning that never reaches the interface (about a quarter of it
 
 When the product runs: use it for an hour like a real user, with real data, and write down every moment of hesitation ("did that work?", "where is...?", "why is this different?"). When it does not run: walk three realistic user stories end to end through the code, screen by screen.
 
-## 12. Writing the critique
+## 12. Lean pass
 
-1. One finding per line: **where**, **what is wrong**, **why it matters** (the principle), **the fix**, **severity** (blocker, major, minor).
-2. Lead with blockers: broken states, dishonest patterns, unreadable text, missing primary action.
-3. Be specific: "The badge and the title both use 700 weight and the CTA is neon, so three things compete; drop the title to 500 and mute the CTA", not "the hierarchy is off".
-4. Separate fact from taste. Taste comments are labelled as taste and come last.
-5. End with what works, so it is kept in the next round.
+Go over the components the change adds or touches:
+
+- **Delete:** dead variants, props no screen passes, components nothing imports, styles no element uses.
+- **Reuse:** a local card, button or empty state where the house one exists. Name its path in the finding.
+- **Native:** a custom widget where a native element does the job (`<dialog>`, `<details>`, `<input type="date">`).
+- **Speculative:** a wrapper that only passes props through, a variant system with one variant, a context for one value.
+- **Merge:** near copies that must change together (two card components 90% alike).
+- Before calling anything unused, grep the whole tree, including tests, fixtures, config and names built from strings.
+
+## 13. Auditing a whole app
+
+1. Map first: README, build and deploy config, the dependency list, entry points, routes, the shared component folder, tests.
+2. Read the risky paths end to end: checkout and payment, sign in and account, destructive actions, anything that writes user data, settings that persist.
+3. Go deep where a mistake costs most, not file by file, and say which parts you did not read.
+4. Cap the report at 20 findings and say how many smaller ones were left out.
+
+## 14. Writing the critique
+
+1. **Priority order:** works in every state, then honest, then accessible, then consistent, then polished, then lean. A slowdown a user feels is a problem; a small speed win is a suggestion.
+2. **Open with what it is:** two or three sentences starting `What this change does:` (or `What this app does:` plus the size you assumed).
+3. **Group by severity** (blocker, major, minor), blockers first: broken states, dishonest patterns, unreadable text, missing primary action. Skip empty groups.
+4. **Number findings across all groups,** so the user can answer "fix 2 and 5".
+5. **Each finding:** a bold title with `file:line` that states the user impact in plain words ("Long names push the Save button off the card", not the component name), then four short parts: **What this is** (context for someone who never saw the code), **Problem**, **Fix**, **If we skip it** (the consequence).
+6. **Every finding needs a concrete case:** "this input or situation leads to this wrong result". No case, no finding. Before reporting, re-read the lines: the importer exists, the value can really be empty, the code really is unused.
+7. **Be specific:** "The badge and the title both use 700 weight and the CTA is neon, so three things compete; drop the title to 500 and mute the CTA", not "the hierarchy is off". No "consider", no vague worries.
+8. **Smallest fix that works.** Prefer fixes that delete code. Never propose a new layer, framework or config to fix one screen.
+9. **A marked deferral is a decision.** A `kwx-defer:` comment (`workflow/lean-build.md`) that names its limit is not a finding, unless the expected load already crosses it.
+10. **Separate fact from taste.** Taste comments are labelled as taste and come last.
+11. **Plain English:** short sentences, everyday words, a technical term explained the first time it appears.
+12. **End with** what works (so it is kept next round), then three lines: `Verdict:` ship, or fix N first; `Lean:` what can be deleted; `Not checked:` what you did not read or run.
+13. **Nothing found:** say "Looks good. Ship." plus one line on what was checked.
+14. A report the user asked for is given in full; brevity rules for replies do not cut it.
 
 Example:
 
 ```
-[major] ProductPage hero: back and menu icons sit bare on the photo. Invisible on a
-bright product image (tested with a white background image). Fix: 36 px white circle
-with a 1 px outline behind each icon.
+2. [major] ProductPage.tsx:41, the back and menu icons disappear on bright photos
+What this is: the two icons sit straight on the hero photo.
+Problem: on a white background product image they are invisible.
+Fix: a 36 px white circle with a 1 px outline behind each icon.
+If we skip it: on light products the user cannot find the way back.
 ```
 
-## 13. Checks
+## 15. Checks
 
 | Check | Pass when |
 |---|---|
@@ -124,3 +164,6 @@ with a 1 px outline behind each icon.
 | Reference | Sizes and density match or exceed the reference at the same zoom |
 | Three questions | Answered yes for every action in the core flow |
 | Rationale | Every stated design claim is implemented |
+| Past the diff | Every importer of a changed component or token was opened |
+| Volume | The assumed data size is written in the review |
+| Findings | Each has a concrete case, a fix and a consequence; numbered; verdict line present |

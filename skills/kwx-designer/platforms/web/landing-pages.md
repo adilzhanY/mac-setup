@@ -13,8 +13,9 @@ A landing page has one job: make the right visitor understand the product in sec
 7. Visual and media rules
 8. Mobile specifics
 9. Pre-launch variant
-10. Anti-patterns
-11. Review checklist
+10. Claim pages for dev tools, agents and B2B
+11. Anti-patterns
+12. Review checklist
 
 ## 1. What the research says
 
@@ -137,7 +138,23 @@ Same blueprint, with these changes:
 - Pricing: show the planned price or "Free with optional Pro" if decided; never invent a crossed-out "launch discount" price you never charged.
 - Confirm signup inline, then on email (double opt-in in the EU).
 
-## 10. Anti-patterns
+## 10. Claim pages for dev tools, agents and B2B
+
+Products with no screen worth showing (CLIs, agents, APIs, plugins) sell on a measured claim. Observed on the ponytail plugin's README cards (2026), one consistent card set:
+
+- **Hero numbers:** product name, a one line claim, then three or four big signed numbers with one word labels ("-53% code", "-41% time"), rounded, against a named baseline. Method and sample in small type under them ("39 tasks x 5 runs, Opus 5.5").
+- **Answer the fear under the numbers.** A claim of less raises "is it less safe?", so the next line answers it with a counter number: "98% of risky logic ships with a test. Without it: 68%."
+- **A stat as a set:** a huge number, the baseline directly under it in small grey ("no skill: 68%"), a label sentence, a definition in parentheses ("a branch, a loop, a parser, money"), a method footnote.
+- **Before and after card:** the user's request as a quoted eyebrow, a one sentence contrast headline, the losing version as a dim unreadable wall with a big grey count ("335 lines"), the winning version full and readable with a bright count ("10 lines"), the key token marked with an inline label, and a one line takeaway. Contrast is carried by brightness and size, not by red and green.
+- **How it works as a ladder:** an eyebrow, the rule as a one sentence headline, one row per step with the question left and the action muted on the right, the last step in the only accent, and a footer line with the guarantees ("Validation, security and accessibility are never cut").
+- **Real output, then the number:** show one real result in its exact format (a review finding with its severity and rows), then the stat it earns.
+- **Hero art from the product's own material** when there is no UI to show: a portrait built out of real code, bright where the figure is and dim elsewhere.
+- **One card system:** the same near black surface, one font family, one letter spaced eyebrow style, headlines as full sentences ending in a full stop, one radius, and one gradient kept for the brand word and the hero series only.
+- **Translations:** ship each image in every supported language with the same layout, boxes sized for the longest translation.
+- **Logos** in a light and a dark version, picked by theme.
+- **Teaser banner** before launch: a path style eyebrow with a redacted token, a short curiosity headline, one outlined pill CTA ("Join the waitlist").
+
+## 11. Anti-patterns
 
 - Hero headline that is a slogan with no information ("Life, simplified.").
 - Full-screen video or carousel hero with the message hidden in slide 3. Carousels hide content and slides beyond the first are rarely seen.
@@ -149,7 +166,7 @@ Same blueprint, with these changes:
 - Ten feature sections of equal weight; every section with the same layout.
 - Hero text that animates in from `opacity: 0`.
 
-## 11. Review checklist
+## 12. Review checklist
 
 - [ ] First screen (desktop and 390 px phone): headline, subhead, badges, proof and the top of the product visual.
 - [ ] Headline says what the app does, 3 to 8 words; subhead says for whom and how.

@@ -134,6 +134,7 @@ From the crypto card client (Tim Gabe):
 | Info order | Title, rating, price are the first three content blocks | Read the component order |
 | One primary | Only the buy CTA uses the primary style; title and badge are calmer | Compare weights and colours of the three |
 | Price format | One currency formatter, two decimals, unit | Find the formatter; no raw `toString` on prices |
+| Money maths | Totals and discounts in integer minor units (cents) or a decimal type, never summed as floats (`0.1 + 0.2` is `0.30000000000000004`) | Read the cart and total code for float arithmetic on amounts |
 | Total in button | Label computed from quantity times price | Read the label expression |
 | Stepper placement | Stepper and button share a row container | Read the buy area layout |
 | Sticky action | Buy area is sticky or fixed on long pages | `position: sticky/fixed` or platform equivalent |

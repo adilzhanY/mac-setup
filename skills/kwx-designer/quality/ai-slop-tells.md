@@ -27,8 +27,8 @@ Before shipping, go through every table. For each tell, run the detection step o
 
 | Tell | Detect in code | Fix |
 |---|---|---|
-| Emoji used as icons (checkmark, clipboard, eye, calendar, bar chart, phone, lock, sparkle, waving hand in a greeting) | `grep -rnP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]' src` | One interface icon library (Phosphor, Lucide or similar), line icons, one stroke weight. Emoji only where users pick them as content (Notion page icons) |
-| Unicode symbols as icons (stars, check marks, arrows typed as characters) | Same grep, plus `grep -rnP '[\x{2605}\x{2713}\x{2714}\x{2192}\x{26A1}]'` | Real icons from the set; draw a custom icon on the same grid if the set lacks one |
+| Emoji used as icons (checkmark, clipboard, eye, calendar, bar chart, phone, lock, sparkle, waving hand in a greeting) | `grep -rnP '[\x{2190}-\x{21FF}\x{2300}-\x{23FF}\x{25A0}-\x{25FF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}\x{1F000}-\x{1FAFF}\x{FE0F}]' src` (the full check in `quality-gate.md` section 14) | One interface icon library (Phosphor, Lucide or similar), line icons, one stroke weight. Emoji only where users pick them as content (Notion page icons) |
+| Unicode symbols as icons (stars, check marks, arrows, media keys typed as characters: U+23F8 pause, U+25B6 play, U+21BB reset in a generated countdown) | Same grep: its arrow (U+2190 to U+21FF), technical (U+2300 to U+23FF) and geometric (U+25A0 to U+25FF) ranges catch them; the old pictograph only grep found none of the three | Real icons from the set; draw a custom icon on the same grid if the set lacks one |
 | A decorative icon in every KPI tile and feature card, in a tinted disc | Search for icon wrappers with a tinted background repeated in a grid | Remove it. An icon must carry meaning (device type, brand logo, status) |
 | Icon tile grid: a 3x2 grid of identical cards, tiny tinted icon square, title, two lines | A card map rendering icon plus title plus text, 6 items | One feature per section, text left and a real product visual right |
 | Sparkle icon on every AI or "create" action | `grep -rni sparkle` | Remove unless the product's brand uses it consistently |
@@ -41,7 +41,7 @@ Before shipping, go through every table. For each tell, run the detection step o
 | Tell | Detect in code | Fix |
 |---|---|---|
 | AI chosen palette: generic dark navy background (around #070b14, est.) with bright, clashing accents | Background hexes in the slate/navy range with unrelated bright accents | Pick the palette yourself. Near black tinted toward the brand hue (dark green for a green brand). "Never let an AI choose any of your colors." |
-| Purple and violet gradients (hero cards, buttons, avatars) | `grep -rniE 'from-(purple|violet|indigo)|#7c3aed|#6366f1|#8b5cf6|linear-gradient'` | Solid brand colour from the ramp; gradients only with a brand reason |
+| Purple and violet gradients (hero cards, buttons, avatars) | `grep -rniE 'from-(purple|violet|indigo)|#667eea|#764ba2|#7c3aed|#6366f1|#8b5cf6|linear-gradient'` (`#667eea` to `#764ba2` is the most common generated gradient)  | Solid brand colour from the ramp; gradients only with a brand reason |
 | Gradient headline text (cyan into green, purple into pink) | `bg-clip-text`, `background-clip: text`, `text-transparent` | Plain bold headline in the text colour; one solid accent at most |
 | Gradient CTA buttons | `linear-gradient` on button classes | One solid accent fill |
 | Bright accent fill on every action ("Create New Link", "Export Report", "Generate") | Count accent buttons per screen | One accent fill per view; header actions dark neutral with an icon |

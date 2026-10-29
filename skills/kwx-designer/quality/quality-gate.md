@@ -25,12 +25,15 @@ Most items can be checked by reading the code. Where there is no screenshot, wor
 
 ## 1. How to run the gate
 
-1. List every screen and component the change touches, and every state of each (default, hover, focus, pressed, disabled, loading, empty, error, offline, limit, long content, no content).
-2. Go through sections A to K. For each item write PASS, FAIL or N/A, with the evidence (file and line, or the computed value).
-3. Fix every FAIL, then run the failed items again. Do not report done with an open FAIL.
-4. Run the fast code checks in section 14.
-5. Score the result with `scoring-rubric.md`. Ship only above its minimum.
-6. Report in the format of section 13.
+1. List every screen and component the change touches, and every state of each (default, hover, focus, pressed, disabled, loading, empty, error, offline, limit, long content, no content). Add every file that imports a component, prop or token you changed (`grep -rn` the names), the wiring a new feature needs (route, nav, settings, persistence), and the tests and stories that render it. Each must still work: they are part of the change (`workflow/lean-build.md`).
+2. Write one line on what the change could break for users: data destroyed or exposed, a caller whose props no longer match, a screen that lost a state.
+3. Go through sections A to K. For each item write PASS, FAIL or N/A, with the evidence (file and line, or the computed value).
+4. Fix every FAIL, then run the failed items again. Do not report done with an open FAIL.
+5. Run the fast code checks in section 14.
+6. Score the result with `scoring-rubric.md`. Ship only above its minimum.
+7. Report in the format of section 13.
+
+A shorter version is not a verified one: size metrics reward code that does not run. Trace every changed handler before calling it done.
 
 An item marked **[critical]** blocks shipping on its own.
 
@@ -97,7 +100,7 @@ An item marked **[critical]** blocks shipping on its own.
 |---|---|---|---|
 | E1 [critical] | Every colour has a purpose | Each colour is the brand ramp, a neutral, or a semantic colour with meaning | List every colour token used on the screen and name its meaning; unnamed ones fail |
 | E2 | One accent fill per view | Only one bright filled button | Count primary variant buttons per screen |
-| E3 | No AI default palette | No generic navy plus purple gradient, no neon accents; neutrals tinted toward the brand | Read the palette; hexes like `#7c3aed`, `#6366f1`, `#8b5cf6` with a navy `#0f172a`-style background without a brand reason fail |
+| E3 | No AI default palette | No generic navy plus purple gradient, no neon accents; neutrals tinted toward the brand | Read the palette; the `#667eea` to `#764ba2` gradient, or hexes like `#7c3aed`, `#6366f1`, `#8b5cf6` with a navy `#0f172a`-style background without a brand reason fail |
 | E4 | Desaturated | No pure neon hues (`#00ff00`, pure yellow) unless the brand demands it | Read hex values |
 | E5 | Red reserved | Red only for error, danger, urgent | `grep` danger tokens; each use is one of those |
 | E6 | Semantic colour never alone | Status uses icon plus word, not colour only | Read chip and status components |
@@ -109,7 +112,7 @@ An item marked **[critical]** blocks shipping on its own.
 
 | # | Check | Pass condition | Verify by reading code |
 |---|---|---|---|
-| F1 [critical] | Screen states | Loading, empty, error exist for every data view; offline and limit where relevant | Read the render branches |
+| F1 [critical] | Screen states | Loading, empty, error exist for every data view; offline and limit where relevant; paged lists also have loading more, end of list and error with retry | Read the render branches |
 | F2 [critical] | Button states | Default, hover, pressed, disabled, loading | Read the button component |
 | F3 | Input states | Default, focus, error, warning, disabled | Read the input component |
 | F4 | Silent actions confirmed | Copy, save, send show a confirmation in place | Handlers trigger a chip or toast |
@@ -119,6 +122,8 @@ An item marked **[critical]** blocks shipping on its own.
 | F8 | Undo | Destructive actions have undo or a named confirm | Read destructive handlers |
 | F9 | Broken on purpose | Network off, payment failed, empty lists, long text, missing image each render a designed state | Walk each case through the code |
 | F10 | First run | New account sees a designed empty state pointing at the main action | Zero data branch of home |
+| F11 | Nothing lost in a rewrite | Replaced or removed code (a dependency, an old component) left behind every accessible name, focus rule and state branch it had | `grep -nE 'aria-\|role=\|disabled\|error\|empty\|loading\|focus' old-file`; each hit exists in the new code |
+| F12 | Logic has one check | New branching logic, parsers, formatters, price or date maths have one test or assert | Find the test beside each one |
 
 ## 8. G. Copy
 
@@ -199,8 +204,9 @@ Run from the project root, adjust the source folder. Each hit is a lead to inspe
 
 ```bash
 SRC=src
-# emoji in UI code (pictographs, symbols, dingbats)
-grep -rnP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]' "$SRC"
+# emoji and symbol characters used as icons: arrows, media and technical symbols,
+# geometric shapes, dingbats, stars, emoji planes, emoji variation selector
+grep -rnP '[\x{2190}-\x{21FF}\x{2300}-\x{23FF}\x{25A0}-\x{25FF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}\x{1F000}-\x{1FAFF}\x{FE0F}]' "$SRC"
 # em and en dashes in strings
 grep -rnP '\x{2014}|\x{2013}' "$SRC"
 # literal font sizes outside the token file
@@ -208,13 +214,22 @@ grep -rnE 'font-?size: *[0-9]+|fontSize: *[0-9]+|text-\[[0-9]+px\]|pixelSize: *[
 # gradient text and gradient buttons
 grep -rnE 'bg-clip-text|background-clip: *text|text-transparent|linear-gradient' "$SRC"
 # common AI default palette hexes
-grep -rniE '#(7c3aed|6366f1|8b5cf6|a855f7|0f172a|1e293b|020617)' "$SRC"
+grep -rniE '#(667eea|764ba2|7c3aed|6366f1|8b5cf6|a855f7|0f172a|1e293b|020617)\b' "$SRC"
 # focus outlines removed
 grep -rnE 'outline: *none|outline-none' "$SRC"
 # letter avatars
 grep -rnE 'charAt\(0\)|\[0\]\.toUpperCase\(\)|slice\(0, *1\)' "$SRC"
-# placeholder copy and slogans
+# placeholder copy and slogans shown to users (a TODO inside a code comment is a lead, not copy)
 grep -rnE 'Lorem|TODO|Coming soon|!\"' "$SRC"
+# user or server text written as HTML (injection hole); use textContent or the framework
+grep -rnE 'innerHTML *=|dangerouslySetInnerHTML|v-html' "$SRC"
+# native confirm or alert where the app has a house dialog
+grep -rnE 'window\.(confirm|alert)\(|(^|[^.[:alnum:]_])(confirm|alert)\(' "$SRC"
+# deferral markers, then the ones with no upgrade trigger (no comma after the limit)
+grep -rnE '(//|#|/\*|<!--) ?(kwx-defer|shortcut):' "$SRC" | grep -viE 'shortcut:.*(key|ctrl|cmd|alt\+)'
+grep -rnE '(//|#|/\*|<!--) ?(kwx-defer|shortcut):' "$SRC" | grep -viE 'shortcut:.*(key|ctrl|cmd|alt\+)' | grep -vE '(kwx-defer|shortcut):[^,]+,'
 ```
+
+Pointed at a project root instead of a source folder, add `--exclude-dir={.git,node_modules,dist,build}` to each `grep -r`, or vendored code floods the output. End the marker harvest with a count line: `<N> markers, <M> with no trigger`. A marker in a comment is allowed when it names its trigger; placeholder text shown to users always fails.
 
 For hand drawn SVG icons run `python3 ${CLAUDE_SKILL_DIR}/scripts/icon_check.py <icon.svg>`.

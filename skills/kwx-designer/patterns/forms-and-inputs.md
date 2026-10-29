@@ -89,6 +89,8 @@ Warning is for optional issues that do not block; error blocks submission.
 4. Offer the fix when you know it: "This email already exists. Login instead?" as a link; "Did you mean 'Sprint'?" for a typo.
 5. On submit failure, move focus to the first invalid field and announce it to screen readers.
 6. Server errors: say what happened, keep the data, offer retry, and a support path for money or account flows.
+7. Email: trim, then validate leniently: `^[^@\s]+@[^@\s]+\.[^@\s]+$` on the whole value. Strict patterns (a TLD of `[a-zA-Z]{2,}`, no plus sign) reject valid addresses such as `user+tag@sub.domain.co.uk` and non ASCII domains; the only real proof is a confirmation email. Lenient is not sloppy: `[^@]+` lets spaces and line breaks through.
+8. Anchor every pattern on the full value. In Python use `re.fullmatch` (`re.match` anchors only the start, and `$` lets a trailing newline through). A parser is not a validator: `email.utils.parseaddr` accepted `@missing-local.com` in ponytail's benchmark.
 
 ## 8. Labels and consistency
 

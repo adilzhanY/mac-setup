@@ -29,6 +29,8 @@ Output: a short written brief (10 lines or fewer).
 
 If the user gave no brief, write one from the request and state your assumptions in one line each. Ask only when a wrong guess would waste the work.
 
+Write the user goal as one sentence and check the finished work against its purpose, not its letter: "send the digest as one message" is not done if the code still loops one email per subscriber. A vague request ("build me X") gets the smallest version that does that core job, built now, with the left out parts named. When a requested element has no job, say so in one line before building it.
+
 ## 2. References
 
 Output: 3 to 6 reference screens from real products, with one line each on what to take from it.
@@ -61,7 +63,7 @@ Output: tokens, before the first component. Follow `design-system-first.md`.
 
 Output: working UI.
 
-1. Build from shared components. A new screen reuses the nav, header, buttons, inputs, empty and error components; never restyle locally.
+1. Build from shared components. A new screen reuses the nav, header, buttons, inputs, empty and error components; never restyle locally. For anything new, follow the reach order in `lean-build.md`: house component, then native element or platform API, then an installed dependency, then new code. Native date, colour and file inputs come before a custom picker unless the brief needs one.
 2. Real content of realistic length from the start. No lorem ipsum, no "John Doe".
 3. Build every state from the list in step 3, not only the happy case. "Happy case, one HTML file" is the exact prompt that produced the AI look in Tim Gabe's video.
 4. Let code tools write logic and features when told exactly what; you own layout, colour, and which cards exist (Kole Jain).

@@ -55,6 +55,8 @@ The baseline every web page meets before any visual polish. Condensed from Verce
 ## 3. Navigation and state
 
 - Put UI state in the URL (tabs, filters, billing period on a pricing page: `?billing=yearly`) so refresh, share and Back work.
+- Read and write it with `URLSearchParams` (`getAll("tag")` for repeated keys, `append` to build them). Every value comes back as a string (`"2"`), so parse and validate it where it is read: a URL is user input.
+- `history.replaceState` while a filter is typed or a slider dragged, `pushState` only for a real step (another tab, another page of results), so Back is not one entry per keystroke.
 - Restore scroll position on Back. Anchored headings get `scroll-margin-top` equal to the sticky header height.
 - Sticky headers: 56 to 72 px tall on desktop, 48 to 64 on mobile; they must not cover focused elements.
 - Mobile menu: a full-height sheet with large targets, closes on Esc, traps focus while open, returns focus to the menu button on close.
@@ -73,6 +75,8 @@ The baseline every web page meets before any visual polish. Condensed from Verce
 - Curly quotes, the single ellipsis character, non-breaking spaces in `10&nbsp;MB`, `Cmd&nbsp;K`, and brand names.
 - Tabular numerals for prices, comparisons and counters.
 - Format dates, numbers and currency with `Intl` for the visitor's locale; detect language from browser settings, not IP.
+- Never hardcode the locale (`"en-US"`) in a formatter that claims to be locale aware: pass `undefined` or `navigator.languages`. Take the currency code from the data, never from the locale: a German visitor sees a USD price as `1.234.567,89 $`.
+- Never write user or server text into `innerHTML` with a template string (`${item.title}` is an injection hole): set `textContent` or let the framework escape it. In QML a `Text` defaults to `Text.AutoText` and renders anything that looks like markup, so labels that show user text set `textFormat: Text.PlainText`.
 - Design empty, loading, error, sparse and very long content states; skeletons match the final layout.
 - Never rely on colour alone; icon-only buttons get an accessible name.
 - Specific labels: "Join the waitlist", "Start free trial", "Compare plans". Not "Continue", "Submit", "Learn more" everywhere.

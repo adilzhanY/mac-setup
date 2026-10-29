@@ -144,7 +144,7 @@ A 3 is "acceptable, nothing wrong a user would notice". A 4 is "a good product t
 ## 3. How to score
 
 1. Run `quality-gate.md` first. Its FAILs cap the related dimension at 2.
-2. Score each dimension, with one line of evidence.
+2. Score each dimension, with one line of evidence that names the element or `file:line` that set the level. "Looks clean" is not evidence.
 3. Check the minimums in section 1.
 4. If below the minimum, fix the lowest dimension first, then rescore.
 5. Report the table with the gate report.

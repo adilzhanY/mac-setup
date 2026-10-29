@@ -86,6 +86,7 @@ Run this on any screen that feels busy.
 7. **Collapse rare options** into a "More" menu or a details disclosure.
 8. **Merge similar sizes and colours.** If two greys are 4% apart, use one. If two font sizes are 1px apart, use one.
 9. **Re-check the purpose sentence.** If the screen still does its job and feels calmer, you are done. If it now needs an extra step for a frequent task, restore that element.
+10. **Cut the code the same way.** Dead variants, props no screen passes, duplicate components and styles nothing uses go too. Grep the whole tree (tests, fixtures, names built from strings) before deleting (`workflow/lean-build.md`).
 
 ## 6. Restraint in colour
 
@@ -112,7 +113,7 @@ Run this on any screen that feels busy.
 
 ## 9. Restraint in features and words
 
-- **Decide what not to build** (Apple WWDC26 Purpose). Each feature asks for the user's time, attention and trust.
+- **Decide what not to build** (Apple WWDC26 Purpose). Each feature asks for the user's time, attention and trust. Name what you left out in one line with the condition for adding it ("Skipped: CSV export. Add when a user asks for it."), so the cut is visible and can be reversed.
 - **Sunset low-use features** so the product does not get cluttered, slow and hard to maintain (Stamatiou, *Craft*).
 - **Ship Simple, Lovable, Complete instead of a rough MVP** (Stamatiou). A small thing done fully beats a large thing done half.
 - **Cut filler words:** simply, easily, quickly, just, please, sorry, oops (Apple WWDC25). Keep a descriptive word only when it changes meaning ("feeds your pets automatically").
@@ -124,6 +125,7 @@ Restraint is not the same as removing contrast or information.
 
 - **Too little contrast is not elegant, it is unreadable.** Hobday: high contrast for important elements, low contrast only for structure. Ultra light grey body text fails people.
 - **Hiding everything is not simple** (Apple WWDC26). If a frequent action needs two taps, restraint went too far.
+- **Some things are never cut:** focus styles, labels and accessible names, loading, empty and error states, validation, undo, and anything the user asked for. The full list is in `workflow/lean-build.md` section 7. In ponytail's benchmark the plain "write less" prompt was the only one that dropped a safety guard.
 - **Uniform calm can be dull** (Rauno, *Contrasting Aesthetics*). A brand site or a first impression can earn one deliberate contrast: an unexpected typeface, a large scale jump, a single expressive image. Make it intentional and make it one.
 - **Visual power is allowed.** Vignelli wanted design "forceful", "not limpy": big contrast of scale and weight on a page is restraint done well, because it uses few elements strongly.
 

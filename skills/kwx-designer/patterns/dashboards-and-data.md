@@ -50,6 +50,7 @@ Column headers: a 16 px line icon before each label that hints at the type (# fo
 
 - Right align numbers "so the digits align by place value". The eye then compares magnitude by length. Use `font-variant-numeric: tabular-nums` (or the platform equivalent).
 - Truncate long emails ("alexreed@zipper.co...") so other columns get room.
+- Build each `Intl.NumberFormat` once and reuse it; constructing one per cell is slow in a long table.
 - Decimals: dim them where the integer matters most ("USD 293.00" with ".00" dimmed in the crypto app, Tim Gabe).
 - Copy on hover: a small copy icon at the right end of a hovered cell, then a "Copied!" confirmation.
 

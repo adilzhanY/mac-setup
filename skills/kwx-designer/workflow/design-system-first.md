@@ -120,6 +120,8 @@ Define these as tokens or variants before building screens:
 | Row | default, hover, selected, inactive |
 | Feedback | toast info, success, warning, error; inline "Copied!" chip |
 
+States are always defined. Variants and props are not: add a variant, size or option only when a screen uses it today. A `destructive` variant with no destructive action, or a `size` prop with one value in use, is dead code to maintain.
+
 ## 9. Motion
 
 1. UI transitions about 150 to 300 ms, eased out on enter.

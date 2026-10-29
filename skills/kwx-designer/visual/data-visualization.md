@@ -50,6 +50,8 @@ From Claus Wilke, Fundamentals of Data Visualization:
 - Sequential: one hue (or a natural multi-hue ramp) running monotonically dark to light. Never a rainbow scale: its lightness jumps around and its ends look alike.
 - Diverging: two sequential ramps meeting at a light neutral midpoint that means something (0, 50 percent, average). Avoid red vs green; blue vs orange or purple vs green work for most CVD types.
 - Highlight: grey everything (`--gray-8`), colour only the series the title talks about with the accent.
+- When the one value the title talks about is a failure, it alone takes the semantic error colour; everything else stays neutral. Draw the reference (baseline, target, previous version) as a dashed line.
+- A claim across several metrics: normalise each to the baseline as 100% and label each bar end with both the share and the change ("47% · -53%").
 - Thin lines and small dots need stronger colour than big areas; large areas should be calmer (lower chroma).
 - Dark mode: re-tune chart colours for the dark surface (higher L, lower chroma), do not reuse light values.
 - Test with a CVD simulator, and check the greyscale version still separates series.
@@ -61,8 +63,9 @@ From Claus Wilke, Fundamentals of Data Visualization:
 - Tabular numerals in axes, tables and tooltips; right-align numbers in tables.
 - Round to what the reader needs: 1.2M, not 1,213,442; 43 percent, not 43.27 percent.
 - Format for the reader's locale (`Intl.NumberFormat`); units after the number with a non-breaking space.
+- Compact numbers change length with the locale: `notation: "compact"` gives `1.5K` in English, `1500` in German and `1,5 Mio.` for 1.5 million. Never assume their width in a layout or a test, and show the exact value in the tooltip, because compact hides precision.
 - Axis labels horizontal; if category names are long, switch to horizontal bars.
-- Always state the source and time range in a caption.
+- Always state the source and time range in a caption. A chart that backs a claim also states n and the method ("39 tasks x 5 runs, geometric mean of per task medians") and how to reproduce it. An SVG chart carries a `<title>`.
 
 ## 6. Small charts on marketing pages
 

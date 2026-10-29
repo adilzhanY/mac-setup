@@ -100,6 +100,8 @@ Practical rules (Sara Soueidan, WCAG 2.4.13):
 ## 6. Semantics and screen readers
 
 - Use native elements first: `<button>`, `<a href>`, `<input type="radio">`, `<details>`, `<dialog>`. ARIA is the fallback, not the default.
+- A modal `<dialog>` opens with `showModal()` (not `show()`) and is named with `aria-labelledby` on its heading; closing paths and focus rules are in `patterns/dialogs-and-overlays.md`.
+- Live values: a countdown gets `role="timer"` and announces only milestones; a feed announces "20 more items loaded" politely (`patterns/lists-feeds-and-timers.md`).
 - Links go somewhere, buttons do something. A store badge is a link (`<a href="https://apps.apple.com/...">`) whose image has alt text "Download on the App Store".
 - One `h1` per page; headings in order without skipping levels; landmarks `header`, `nav`, `main`, `footer`.
 - Icon-only buttons need an accessible name (`aria-label="Close"`). Decorative icons get `aria-hidden="true"`.

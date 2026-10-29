@@ -19,6 +19,7 @@ The 16 steps come from the uxpeak strawberry redesign, generalised. Each step ha
 2. Number the problems you see on the current version (the video numbered 15 callouts). Keep the list; it becomes the log.
 3. Find 3 to 6 reference screens from real products that solve the same job.
 4. Do not change features and visuals in the same pass without listing both.
+5. List what the old code does that the screenshot does not show: validation, `aria-*` attributes, focus handling, error, empty and loading branches (`grep -nE 'aria-|role=|disabled|error|empty|loading|focus'` on each file). Moved or rewritten code keeps every item.
 
 ## 2. The 16 steps
 
@@ -150,7 +151,7 @@ Structure, persistence, shortcuts, cross sell. Make the task easier.
 1. States pass: loading, empty, error, offline, limit for every screen touched (`patterns/states-feedback-and-failure.md`).
 2. Consistency pass: the redesigned screen next to the untouched ones. Either bring the others along or keep the shared parts identical.
 3. Run `quality/quality-gate.md` and `quality/scoring-rubric.md`.
-4. Show before and after side by side with the numbered list of changes.
+4. Show before and after side by side with the numbered list of changes, and one counted line when code was replaced ("2 dependencies and 140 lines became 1 house component and 30 lines").
 
 ## 4. Redesign log format
 

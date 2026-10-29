@@ -49,13 +49,13 @@ Copy this checklist into your notes and tick it off:
 - [ ] 2 References: 3 to 5 real products that solve the same job well; note what to borrow
 - [ ] 3 System: tokens (colour ramp, type scale, spacing, radius, shadow, motion)
 - [ ] 4 Structure: one task per screen, the primary action, what is hidden until needed
-- [ ] 5 Build: real content, real data shapes, every state
+- [ ] 5 Build: reuse first (house component, native element, installed library, then new code), real content, real data shapes, every state
 - [ ] 6 Critique: squint test, screen N next to screen 1, break it on purpose
 - [ ] 7 Quality gate: quality/quality-gate.md, every item, then score with quality/scoring-rubric.md
 ```
 
 Full method: `workflow/design-process.md`. Redesigning something existing:
-`workflow/redesign-method.md`.
+`workflow/redesign-method.md`. Writing or changing the code: `workflow/lean-build.md`.
 
 ## Read what you need
 
@@ -100,6 +100,8 @@ Read the master file of each area you touch, then only the files the task needs.
 | `patterns/onboarding.md` | sequenced onboarding, checklists | first run |
 | `patterns/product-pages-and-commerce.md` | product page, cart, upsell | shops, product detail |
 | `patterns/mobile-patterns.md` | tab bar, sheets, gestures, one task per screen | mobile screens |
+| `patterns/dialogs-and-overlays.md` | native dialog, naming, close paths, light dismiss, focus | any modal, confirm or overlay |
+| `patterns/lists-feeds-and-timers.md` | paged feeds, volume, search as you type, countdowns | feeds, long lists, search, timers |
 | `platforms/mobile/mobile-foundations.md` | iOS and Android numbers side by side | **any mobile UI** |
 | `platforms/mobile/navigation.md` | tab bar, stacks, sheets | mobile navigation |
 | `platforms/mobile/gestures-and-haptics.md` | reach, gestures, haptic patterns | touch interaction |
@@ -136,9 +138,12 @@ Read the master file of each area you touch, then only the files the task needs.
 | `quality/ai-slop-tells.md` | tells of generated UI and the fixes | every build and review |
 | `quality/critique-method.md` | squint, sequence, break it | reviewing |
 | `quality/scoring-rubric.md` | 0 to 5 per dimension, minimum to ship | final score |
+| `quality/enforcement.md` | hooks that re-inject the gate, copy sync, settings snippet | making the gate stick, editing the hooks |
 | `workflow/design-process.md` | the end to end method | starting a design |
 | `workflow/redesign-method.md` | the step order for a redesign | improving an existing UI |
 | `workflow/design-system-first.md` | building the tokens | a new product or no system yet |
+| `workflow/lean-build.md` | scope list, reach order, never cut, deferral marker, reply rules | **writing or changing UI code**, picking a dependency, fixing a defect |
+| `evals/method.md` | arms, scorers, planted defects, judges, statistics | measuring the skill or changing a rule in it |
 
 ## Scripts (run them, do not read them)
 
@@ -148,12 +153,17 @@ Read the master file of each area you touch, then only the files the task needs.
   translucent colours blended first.
 - `python3 ${CLAUDE_SKILL_DIR}/scripts/icon_check.py <icon.svg>...`: renders icons at 16 to 48px,
   checks padding and blur, prints an ASCII preview and a contact sheet to Read.
+- `python3 ${CLAUDE_SKILL_DIR}/scripts/gate_hook.py --event SessionStart|SubagentStart`: hook that
+  re-injects the critical rules and `[critical]` gate rows (`quality/enforcement.md`; not wired yet).
+- `python3 ${CLAUDE_SKILL_DIR}/scripts/check_skill.py`: run after any edit to this skill; checks
+  links, paths, dashes, pinned phrases, Contents lists, size budget and the gate greps.
 
 ## Evidence
 
 `sources/` holds the research this skill was distilled from (video notes, book notes,
 deep research reports, cited studies). Do not load it for normal tasks. Open it only when
-the user asks why a rule exists or you must settle a conflict between two rules.
+the user asks why a rule exists or you must settle a conflict between two rules. A new rule
+ships only if it moves a measured number (`evals/method.md`, section 8).
 
 ## Before you finish
 
@@ -167,3 +177,4 @@ Run `quality/quality-gate.md` in full. At minimum:
 - [ ] No slop tells, no emoji icons, no dark patterns, no em dashes
 - [ ] Copy is plain and specific; errors say what happened and what to do
 - [ ] If the user reported a defect, it is written in the project's mistakes library and checked
+- [ ] The reply ends with `Skipped: <what>. Add when <trigger>.` and what was not checked, with any risk

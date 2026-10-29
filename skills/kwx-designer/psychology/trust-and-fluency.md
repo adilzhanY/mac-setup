@@ -53,7 +53,8 @@ Lessons:
 2. Show who did what with avatars and names in activity feeds and tables.
 3. Show the source of a number: "Edited 23 min ago", "Today, 2:13pm | 4 hours ago".
 4. Security and privacy reassurance next to the sensitive step (the neobank KYC intro: steps, "takes about 3 minutes", privacy note, one CTA).
-5. A landing page "establishes trust, even subconsciously" (Kole Jain, vibe coded SaaS). Real product graphics beat icon tiles; a vibe coded landing page is where most customers are lost.
+5. Concede limits in public. A note that an earlier headline number was inflated, with the corrected figure and links to measurements other people ran, earns more trust than a flawless claim (ponytail's "Read this number honestly" section).
+6. A landing page "establishes trust, even subconsciously" (Kole Jain, vibe coded SaaS). Real product graphics beat icon tiles; a vibe coded landing page is where most customers are lost.
 
 ## 5. Honest imagery and copy
 
