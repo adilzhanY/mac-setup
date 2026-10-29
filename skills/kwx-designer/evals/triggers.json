@@ -1,0 +1,26 @@
+{
+  "should_trigger": [
+    "make this settings page look less generic",
+    "design a landing page for my app with pricing",
+    "the dashboard feels cluttered, can you fix it",
+    "redesign the onboarding flow of my mobile app",
+    "draw a custom icon for 'rank up' in our style",
+    "review this screen, it looks AI generated",
+    "build the property inspector for my CAD tool",
+    "what is wrong with this pricing table",
+    "add an empty state to the workouts list",
+    "make the app feel premium"
+  ],
+  "should_not_trigger": [
+    "fix the failing sync test",
+    "write a SQL migration for the sessions table",
+    "explain how the DOTS formula works",
+    "rename this function across the repo",
+    "set up the EAS build profile",
+    "summarize this research paper",
+    "commit and push my changes",
+    "why is the API returning 500",
+    "write a cover letter",
+    "translate this paragraph to German"
+  ]
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "prompt": "Build a pricing section for a mobile workout app that is not on the stores yet.",
+    "assertions": [
+      "No official App Store or Google Play badge is shown before a listing exists",
+      "Exactly one plan is visually recommended",
+      "Prices are the largest text on each plan card",
+      "No emoji used as icons and no em dashes in copy",
+      "Monthly/yearly savings are computed honestly"
+    ]
+  },
+  {
+    "prompt": "Review this SaaS dashboard: 4 KPI tiles repeated on 3 pages, emoji in buttons, purple gradient header.",
+    "assertions": [
+      "Names the repeated KPIs, emoji icons and AI picked gradient as slop tells",
+      "Gives a concrete fix for each, with a reference to the data driving the form",
+      "Runs or cites the quality gate"
+    ]
+  },
+  {
+    "prompt": "Draw a 24px SVG icon for a barbell in the house style.",
+    "assertions": [
+      "SVG uses viewBox 0 0 24 24, stroke 2, round caps and joins, currentColor",
+      "Ink stays inside the live area",
+      "scripts/icon_check.py was run and its output read"
+    ]
+  }
+]
