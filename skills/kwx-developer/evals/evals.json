@@ -1,0 +1,96 @@
+[
+  {
+    "id": "audit-mixed-exports",
+    "prompt": "Audit this repo for organisation problems. I am not a developer, so explain things simply.",
+    "files": {
+      "package.json": "{\n  \"name\": \"shop\",\n  \"private\": true,\n  \"scripts\": {\"typecheck\": \"tsc --noEmit\", \"test\": \"vitest run\"},\n  \"devDependencies\": {\"typescript\": \"5.9.3\", \"vitest\": \"3.2.4\"}\n}\n",
+      "tsconfig.json": "{\"compilerOptions\": {\"strict\": true, \"noEmit\": true, \"module\": \"esnext\", \"moduleResolution\": \"bundler\", \"jsx\": \"react-jsx\"}}\n",
+      "CLAUDE.md": "# shop\nRun `npm run typecheck` and `npm test` before finishing.\n",
+      "lib/slug.ts": "export function slug(x: string): string {\n  return x\n}\n",
+      "lib/plural.ts": "export function plural(x: string): string {\n  return x\n}\n",
+      "lib/truncate.ts": "export function truncate(x: string): string {\n  return x\n}\n",
+      "lib/capitalize.ts": "export function capitalize(x: string): string {\n  return x\n}\n",
+      "lib/parseQuery.ts": "export function parseQuery(x: string): string {\n  return x\n}\n",
+      "lib/clamp.ts": "export function clamp(x: string): string {\n  return x\n}\n",
+      "lib/money.ts": "export function formatCents(cents: number, currency: string): string {\n  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(cents / 100)\n}\n",
+      "lib/formatDate.ts": "export default function formatDate(d: Date): string {\n  return d.toISOString().slice(0, 10)\n}\n",
+      "lib/cropUtils.ts": "export default async function getCroppedImg(src: string): Promise<string> {\n  return src\n}\n",
+      "components/Cart.tsx": "import formatDate from '../lib/formatDate'\n\nfunction plural(n: number, word: string) {\n  return n === 1 ? word : word + 's'\n}\n\nexport function Cart({ items, totalCents, updated }: { items: number; totalCents: number; updated: Date }) {\n  return <p>{items} {plural(items, 'item')}, total {totalCents}, updated {formatDate(updated)}</p>\n}\n",
+      "DECISIONS.md": "# Decisions\n\n## D-01 Default export kept in lib/cropUtils.ts\n\n2026-10-01. **Accepted.**\nAudit: export-style:lib\nScope: `lib/cropUtils.ts`\nKeep: the default export of `getCroppedImg`.\nWhy: copied from the react-easy-crop docs and replaced whole when they update it.\nEnforced by: nothing, reviewed by hand.\n",
+      "TODO.md": "# TODO\n\n## Audit 2026-10-01\n\n### P3\n\n- [ ] **A1. plural() is written twice** `duplicate:plural-helper`\n      `lib/plural.ts`, `components/Cart.tsx:3`. Impact: a fix to one misses the other. Effort: S.\n"
+    },
+    "setup": "git init -q && git add -A && git -c user.name=t -c user.email=t@t commit -qm init",
+    "assertions": [
+      "Reads CLAUDE.md, DECISIONS.md and TODO.md before running any audit tool, and says how many decisions and open TODO keys it will not re-flag",
+      "Runs scripts/scan_conventions.py (or the export census of quality/codebase-audit-tools.md section 6) and names lib/formatDate.ts as the one file in lib/ that exports by default while the other files export by name, with the counts",
+      "Does not report or ask about lib/cropUtils.ts, which D-01 covers",
+      "Does not add a new TODO item for the plural helper (open key duplicate:plural-helper); at most appends a dated 'Seen again' line to A1",
+      "Shows a short ranked summary before asking",
+      "Asks with AskUserQuestion, one question for the formatDate finding, with exactly the three answers Later, Plan a fix, Keep as is, the recommended one first and marked (Recommended)",
+      "The question says what was found, why it matters and the effort in plain words, explaining any technical term it uses",
+      "Changes no source file before an answer: git status shows no change outside TODO.md and DECISIONS.md",
+      "Given the answer 'Keep as is', appends D-02 to DECISIONS.md with Audit: export-style:lib, Scope: `lib/formatDate.ts`, status Accepted, and leaves D-01 untouched",
+      "Given the answer 'Later' instead, adds one TODO.md item with the key `export-style:lib` in the file's existing style, and no D-entry"
+    ]
+  },
+  {
+    "id": "feature-without-derailing",
+    "prompt": "Show the cart total in euros in components/Cart.tsx, it currently shows raw cents.",
+    "files": {
+      "package.json": "{\n  \"name\": \"shop\",\n  \"private\": true,\n  \"scripts\": {\"typecheck\": \"tsc --noEmit\", \"test\": \"vitest run\"},\n  \"devDependencies\": {\"typescript\": \"5.9.3\", \"vitest\": \"3.2.4\"}\n}\n",
+      "tsconfig.json": "{\"compilerOptions\": {\"strict\": true, \"noEmit\": true, \"module\": \"esnext\", \"moduleResolution\": \"bundler\", \"jsx\": \"react-jsx\"}}\n",
+      "CLAUDE.md": "# shop\nRun `npm run typecheck` and `npm test` before finishing.\n",
+      "lib/slug.ts": "export function slug(x: string): string {\n  return x\n}\n",
+      "lib/plural.ts": "export function plural(x: string): string {\n  return x\n}\n",
+      "lib/truncate.ts": "export function truncate(x: string): string {\n  return x\n}\n",
+      "lib/capitalize.ts": "export function capitalize(x: string): string {\n  return x\n}\n",
+      "lib/parseQuery.ts": "export function parseQuery(x: string): string {\n  return x\n}\n",
+      "lib/clamp.ts": "export function clamp(x: string): string {\n  return x\n}\n",
+      "lib/money.ts": "export function formatCents(cents: number, currency: string): string {\n  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(cents / 100)\n}\n",
+      "lib/formatDate.ts": "export default function formatDate(d: Date): string {\n  return d.toISOString().slice(0, 10)\n}\n",
+      "lib/cropUtils.ts": "export default async function getCroppedImg(src: string): Promise<string> {\n  return src\n}\n",
+      "components/Cart.tsx": "import formatDate from '../lib/formatDate'\n\nfunction plural(n: number, word: string) {\n  return n === 1 ? word : word + 's'\n}\n\nexport function Cart({ items, totalCents, updated }: { items: number; totalCents: number; updated: Date }) {\n  return <p>{items} {plural(items, 'item')}, total {totalCents}, updated {formatDate(updated)}</p>\n}\n",
+      "DECISIONS.md": "# Decisions\n\n## D-01 Default export kept in lib/cropUtils.ts\n\n2026-10-01. **Accepted.**\nAudit: export-style:lib\nScope: `lib/cropUtils.ts`\nKeep: the default export of `getCroppedImg`.\nWhy: copied from the react-easy-crop docs and replaced whole when they update it.\nEnforced by: nothing, reviewed by hand.\n",
+      "TODO.md": "# TODO\n\n## Audit 2026-10-01\n\n### P3\n\n- [ ] **A1. plural() is written twice** `duplicate:plural-helper`\n      `lib/plural.ts`, `components/Cart.tsx:3`. Impact: a fix to one misses the other. Effort: S.\n"
+    },
+    "setup": "git init -q && git add -A && git -c user.name=t -c user.email=t@t commit -qm init",
+    "assertions": [
+      "Reuses formatCents from lib/money.ts instead of writing a new helper, and says which search found it",
+      "The diff touches only components/Cart.tsx (and a test if it adds one); lib/formatDate.ts and the local plural() are unchanged",
+      "Runs the project's typecheck and test commands from CLAUDE.md and reports each with its result, plus a Not checked line",
+      "Asks no question before the task is finished",
+      "After the report, lists what it noticed (the default export in lib/formatDate.ts, the plural duplicate already in TODO.md is not re-listed as new) with keys, and does not fix them",
+      "Does not send an AskUserQuestion for P3 findings; offers 'audit' or writing them to TODO.md in one line instead"
+    ]
+  },
+  {
+    "id": "duet-full-stack-comments",
+    "prompt": "Build comments for blog posts: people can post a comment and read comments under each post. It's a Next.js app with Drizzle and Postgres.",
+    "assertions": [
+      "Writes the contract before building: a states list per screen, the API shapes with error codes, and the hook signatures",
+      "Every error code maps to a UI state and every UI state names the API signal that triggers it",
+      "Splits the work between the ui-designer agent (screens, states, copy) and a developer agent (migration, API, client hooks), with a written file list per agent and one owner per shared file",
+      "The migration is additive, has a length CHECK and NOT NULL constraints, and indexes (post_id, created_at, id) for keyset pagination",
+      "The list endpoint uses cursor pagination with a clamped page size; posting accepts an idempotency key or is otherwise safe to retry",
+      "The final report contains both gates (kwx-developer and kwx-designer) and the duet rows J1 to J9, with no open critical row"
+    ]
+  },
+  {
+    "id": "review-missed-caller-and-weakened-test",
+    "prompt": "Review my branch before I merge it into main.",
+    "files": {
+      "package.json": "{\"name\": \"users\", \"private\": true, \"scripts\": {\"typecheck\": \"tsc --noEmit\", \"test\": \"vitest run\"}}\n",
+      "src/users.ts": "export type User = { id: string; name: string }\nexport function getUser(id: string): User {\n  return { id, name: 'Ada' }\n}\n",
+      "src/profile.ts": "import { getUser } from './users'\nexport function title(id: string) {\n  return getUser(id).name.toUpperCase()\n}\n",
+      "src/users.test.ts": "import { expect, test } from 'vitest'\nimport { getUser } from './users'\ntest('getUser', () => {\n  expect(getUser('1')).toEqual({ id: '1', name: 'Ada' })\n})\n"
+    },
+    "setup": "git init -q -b main && git add -A && git -c user.name=t -c user.email=t@t commit -qm init && git checkout -qb feature && printf \"export type User = { id: string; name: string }\\nexport function getUser(id: string): { user: User | null } {\\n  return { user: { id, name: 'Ada' } }\\n}\\n\" > src/users.ts && sed -i \"s/toEqual({ id: '1', name: 'Ada' })/toBeDefined()/\" src/users.test.ts && git -c user.name=t -c user.email=t@t commit -qam 'getUser returns a wrapper'",
+    "assertions": [
+      "Reads past the diff and finds that src/profile.ts:3 still reads getUser(id).name, with proof (rg output or the typecheck error)",
+      "Flags the change from toEqual to toBeDefined in src/users.test.ts as a weakened test, severity blocker",
+      "Every finding has a severity, a confidence, file:line and a proof",
+      "Makes no formatting or naming nits",
+      "Edits no file"
+    ]
+  }
+]

@@ -44,6 +44,7 @@ Ask these before starting, in one message:
 | `skills/caveman/` | `~/.claude/skills/caveman/` | The caveman skill, with the user's own edits |
 | `skills/mgpro/` | `~/.claude/skills/mgpro/` | mgpro: Apple-style motion graphics videos with Remotion, three.js and synthesized sound |
 | `skills/kwx-designer/` | `~/.claude/skills/kwx-designer/` | kwx-designer: premium, intuitive UI design for web, mobile, desktop and editors, with custom SVG icons and a quality gate |
+| `skills/kwx-developer/` | `~/.claude/skills/kwx-developer/` | kwx-developer: correct, consistent, safe code in Rust and TypeScript across the full stack; reads the codebase first and asks before fixing what it finds |
 | `herdr/config.toml` | `~/.config/herdr/config.toml` | herdr, the terminal workspace for AI agents |
 
 ---
@@ -277,7 +278,7 @@ cp claude/CLAUDE.md claude/settings.json claude/statusline.sh ~/.claude/
 cp claude/hooks/notify.sh ~/.claude/hooks/
 chmod +x ~/.claude/statusline.sh ~/.claude/hooks/notify.sh
 cp -R claude-mods ~/dev/claude-mods
-cp -R skills/caveman skills/mgpro skills/kwx-designer ~/.claude/skills/
+cp -R skills/caveman skills/mgpro skills/kwx-designer skills/kwx-developer ~/.claude/skills/
 ```
 
 The mods must live at exactly `~/dev/claude-mods`: `settings.json` loads them from there through `CLAUDE_CODE_PLUGIN_DIRS`, and the stats card runs `~/dev/claude-mods/stats-card/scripts/stats.mjs`. Make `~/dev/claude-mods` a git repo with a first commit so later edits are tracked (`git init && git add -A && git commit -m "Claude Code mods"`), and ask the user before pushing it anywhere.

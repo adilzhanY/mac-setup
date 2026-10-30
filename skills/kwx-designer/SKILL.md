@@ -56,6 +56,10 @@ Copy this checklist into your notes and tick it off:
 
 Full method: `workflow/design-process.md`. Redesigning something existing:
 `workflow/redesign-method.md`. Writing or changing the code: `workflow/lean-build.md`.
+A feature with data, an API or a database behind the UI: work in duet with the kwx-developer
+skill (its duet workflow file). Agree the contract first: your list of UI states (loading, empty,
+error, limit, offline) is the API's error and loading contract; you own the screens, it owns data,
+API and the client data layer; both quality gates run at the end.
 
 ## Read what you need
 

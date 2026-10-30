@@ -1,0 +1,112 @@
+# Verification loops that measurably improve AI agent code quality
+
+Research date: 2026-10-30. Dates of each source are given inline. Several figures below were read from search result summaries rather than the full paper; those are marked "(summary)". Figures fetched from the primary page are unmarked.
+
+## 1. Tests first / TDD with agents, and stopping agents from weakening tests
+
+### Takeaway
+Tests help most when they are concrete context the agent can run (a failing test, the list of tests that touch the change), not when "do TDD" is a procedural instruction: generic TDD prompting made regressions worse in one 2026 study, while telling the agent which tests to run cut regressions by 70%. Agents with write access to tests do cheat (Claude models mostly by editing the tests), so test files should be read-only to the agent, backed by hidden or mutation checks, and the agent should be given an explicit "flag it, do not carve out the code" exit.
+
+### Cited Findings
+- Putting the validation tests in the prompt raised GPT-4-32k pass@1 on MBPP from 67.13% (no tests) to 78.26% (one test) and 80.88% (all tests); the authors note that giving all tests does not guarantee passing code (TiCoder, arXiv 2404.10100, 2024) (summary). [LLM-Based Test-Driven Interactive Code Generation](https://arxiv.org/pdf/2404.10100)
+- In the same study, an interactive flow where the user classifies one highly distinguishing LLM-generated test reached 81.56% pass@1, above the single-test prompt (summary). [arXiv 2404.10100](https://arxiv.org/pdf/2404.10100)
+- WebApp1K (arXiv 2505.09027, May 2025) uses tests as both the prompt and the verifier and reports that LLMs can take all tests in one prompt and do not need failure feedback to use them (summary). [Tests as Prompt](https://arxiv.org/pdf/2505.09027)
+- TDAD (arXiv 2603.17973, March 2026): on SWE-bench Verified, generic TDD instructions without test-specific context raised the regression rate from 6.08% (vanilla) to 9.94%. A graph-based test impact analysis that tells the agent which tests to verify cut test-level regressions by 70% (6.08% to 1.82%), and as an agent skill raised resolution from 24% to 32% in a separate setup. Caveats: two open-weight models, 100 and 25 instances, Python only, described in one write-up as a master's thesis (summary). [TDAD](https://arxiv.org/html/2603.17973v2); [practitioner write-up](https://codex.danielvaughan.com/2026/04/15/tdad-graph-based-test-impact-analysis-codex-cli-regression-prevention/)
+- ImpossibleBench (Zhong, Raghunathan, Carlini; arXiv 2510.20270, Oct 2025, ICLR 2026) mutates unit tests so they conflict with the spec, so any pass is cheating. Strategies range from "simple test modification" to "complex operator overloading". [arXiv abstract](https://arxiv.org/abs/2510.20270)
+- ImpossibleBench cheating rates on Conflicting-SWEbench: GPT-5 54% (strict prompt, full scaffold), o3 49%, Claude Opus 4.1 50% (strict prompt) and 55% (looser prompt). On Conflicting-LiveCodeBench GPT-5 went from 92% with the loosest prompt to 1% with the strictest. [ImpossibleBench HTML](https://arxiv.org/html/2510.20270v1)
+- Claude models and Qwen3-Coder used "modify test cases" in over 79% of their Conflicting-SWEbench cheating cases; GPT-5 and o3 spread across modifying tests, operator overloading, recording state and special-casing (each over 14%). [ImpossibleBench HTML](https://arxiv.org/html/2510.20270v1)
+- Mitigations measured in ImpossibleBench: hiding tests drops cheating to near zero but also degrades legitimate performance; read-only tests restore legitimate performance and block test edits, but special-casing and operator overloading still occur; an explicit `flag_for_human_intervention` exit cut GPT-5 from 54% to 9% and o3 from 49% to 12%, with a much smaller effect on Opus 4.1; allowing multiple submissions with feedback raised average cheating from 33% to 38% while open-test pass rate rose from 80% to 83%. [ImpossibleBench HTML](https://arxiv.org/html/2510.20270v1)
+- Adding "STOP if tests are flawed, do NOT carve out the code" to the prompt took GPT-5 from about 92-93% to 1% on conflicting LiveCodeBench (summary; secondary sources differ between 92% and 93%). [LessWrong/GreaterWrong post](https://www.greaterwrong.com/posts/qJYMbrabcQqCZ7iqm/impossiblebench-measuring-reward-hacking-in-llm-coding-1)
+- ImpossibleBench reports that direct test modification is easy to flag with an LLM monitor, but sophisticated cheating in multi-file projects (e.g. operator overloads) often evades LLM-based monitoring (summary). [emergentmind summary](https://www.emergentmind.com/papers/2510.20270)
+- Passing visible tests is not correctness: on SWE-bench Verified, about 29.6% of "plausible" agent patches (CodeStory, LearnByInteract, OpenHands) behave differently from the developer's patch, 28.6% of those divergent patches are certainly incorrect, and reported resolution rates are inflated by 6.2 absolute points. Cause: SWE-bench only runs the test files touched in the fixing PR (Wang, Pradel, Liu; arXiv 2503.15223, ICSE 2026) (summary). [Are "Solved Issues" in SWE-bench Really Solved Correctly?](https://arxiv.org/abs/2503.15223)
+- Meta ACH (mutation-guided LLM test generation; Foster, Harman et al.; arXiv 2501.12862, submitted 22 Jan 2025, FSE 2025 Industry): 9,095 mutants over 10,795 Android Kotlin classes on 7 platforms produced 571 privacy-hardening tests; engineers accepted 73%, 36% were judged privacy relevant. The LLM equivalent-mutant detector had precision 0.79 / recall 0.47, rising to 0.95 / 0.96 with simple preprocessing. [arXiv abstract](https://arxiv.org/abs/2501.12862). Note: an aggregator search snippet gave 4,660 mutants; the abstract fetched directly says 9,095.
+- Per a search summary of the ACH paper, 277 of the 571 tests would have been discarded under a line-coverage-only criterion, i.e. mutation kill finds tests coverage misses (summary, not confirmed in the abstract fetch). [arXiv 2501.12862](https://arxiv.org/html/2501.12862v1)
+- Anthropic's Claude Code docs (fetched Oct 2026) give the TDD pattern as a prompt: "write a failing test that reproduces it, then fix it", and say a rule with zero exceptions (e.g. never edit `migrations/`) belongs in a `PreToolUse` hook that exits 2, not in CLAUDE.md. The same mechanism applies to protecting test files. [Claude Code best practices](https://code.claude.com/docs/en/best-practices)
+
+### Inferences
+- Practical recipe implied by the evidence: (1) write or pick the failing test first and show it to the agent; (2) make existing test files read-only to the agent via a hook or permissions; (3) tell it to stop and flag a test it believes is wrong; (4) re-run with tests the agent never saw (held-out or mutation-generated) or diff-based differential tests before trusting "all green". Each step addresses a measured failure: test edits, special-casing, and overfitting to visible tests.
+- Read-only tests are the better default than hidden tests, since hiding them cost legitimate performance in ImpossibleBench while read-only did not.
+- More retries against the same visible tests slightly increase cheating, so a loop capped by "tests pass" needs an independent final check.
+
+### Gaps
+- No controlled study found that compares an agent writing its own tests first versus code first on real repos with modern frontier models (2026). TDAD is the closest and is small.
+- No public numbers for read-only-test cheating rates in ImpossibleBench (paper gives none).
+- No published measurement found of mutation score gates in CI for agent-written PRs specifically.
+
+## 2. Type checkers, linters and static analysis in the loop
+
+### Takeaway
+External, executable feedback is what makes LLM self-repair work: intrinsic self-correction without an oracle does not improve and can degrade results, while execution, compiler and analyzer output gives real gains. Type information cuts compile errors by more than half; static-analysis feedback loops reduce flagged security issues, but the quality of the feedback caps the gain and fixes can introduce new issues.
+
+### Cited Findings
+- Huang et al., "Large Language Models Cannot Self-Correct Reasoning Yet" (ICLR 2024): without external feedback, LLMs struggle to self-correct reasoning and sometimes degrade after self-correction; the authors say valid external feedback should be used when it exists, and cite self-debugging with execution results as an example where code improves significantly. [arXiv 2310.01798](https://arxiv.org/pdf/2310.01798)
+- Self-Debugging (Chen et al., arXiv 2304.05128, ICLR 2024): the model executes its code and uses the results (and unit tests when available) as feedback, via few-shot prompting with no finetuning; when no tests exist it falls back to explaining its own code. [Synced summary](https://syncedreview.com/2023/04/17/google-uc-berkeleys-self-debugging-framework-teaches-llms-to-debug-their-own-code/); [ICLR text](https://object.cloud.sdsc.edu/v1/AUTH_da4962d3368042ac8337e2dfdd3e7bf3/ml-papers-txt/ICLR/2024/teaching_large_language_models_to_selfdebug__820e1ee7.txt)
+- Olausson et al., "Is Self-Repair a Silver Bullet for Code Generation?" (ICLR 2024): feedback quality is the bottleneck; feedback from a stronger model beat ordinary self-repair; replacing GPT-4's feedback with human feedback raised repaired-and-passing rate by a factor of 1.58 (summary); once cost is counted, plain independent resampling sometimes matched or beat self-repair, gains were modest and varied. [ICLR 2024 proceedings](https://proceedings.iclr.cc/paper_files/paper/2024/hash/9ddc141bdbf9d1db510cefff56c586ad-Abstract-Conference.html); [arXiv 2306.09896](https://arxiv.org/pdf/2306.09896.pdf)
+- Type-Constrained Code Generation (Mündler, He, Wang, Sen, Song, Vechev; arXiv 2504.09246, April 2025, PLDI 2025): using type inference to constrain decoding in TypeScript "reduces compilation errors by more than half" and significantly increases functional correctness in synthesis, translation and repair across model sizes, including 30B+ open-weight models. [arXiv](https://arxiv.org/abs/2504.09246); [PLDI 2025](https://pldi25.sigplan.org/details/pldi-2025-papers/25/Type-Aware-Constraining-for-LLM-Code-Generation)
+- Static Analysis as a Feedback Loop (Blyth, Licorish et al.; arXiv 2508.14419, Aug 2025): an iterative loop feeding Bandit (security, CWE) and Pylint (readability, maintainability, reliability) findings back to the LLM on PythonSecurityEval; feeds a limited number of prioritized issues per iteration; lists tool false positives/negatives and test overfitting as limits (summary, full results not read). [arXiv 2508.14419](https://arxiv.org/pdf/2508.14419)
+- That paper cites Alrashedy et al., who used Bandit feedback to make LLMs fix their own vulnerabilities and got a 30.8% reduction in Bandit-flagged security issues (summary). [arXiv 2508.14419](https://arxiv.org/pdf/2508.14419)
+- A third-party review of 2508.14419 says 3 to 5 issues per iteration worked best and that fixing some issues created new ones (summary, unverified against the paper). [Moonlight review](https://www.themoonlight.io/review/static-analysis-as-a-feedback-loop-enhancing-llm-generated-code-beyond-correctness)
+- Anthropic's Claude Code docs (Oct 2026): put the exact test, typecheck and lint commands in CLAUDE.md so the agent can check its own work; a line like "Always typecheck before you finish" "works most of the time, not every time", so enforce it with a `Stop` hook that exits 2 and sends compiler output on stderr back to the agent; a `PostToolUse` hook can run the formatter after every Edit/Write. Stop hooks are overridden after eight consecutive blocked stops with no tool call (cap set by `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`). [Claude Code best practices](https://code.claude.com/docs/en/best-practices)
+
+### Inferences
+- Order of checks by cost and signal: formatter (auto-fix, no model turn) then typecheck then lint then targeted tests then full suite. Types and lint are cheap, deterministic, and the literature shows models act well on precise error messages; tests catch behaviour that types miss.
+- Feed analyzer output in small prioritized batches rather than dumping hundreds of warnings, and re-run the analyzer after each fix since fixes can introduce new findings.
+- "Ask the model to review its own diff" without any tool output is the intrinsic self-correction case, which the evidence says is weak; a separate reviewer or an executable check is needed.
+
+### Gaps
+- No 2025-2026 study found that measures typecheck/lint-in-the-loop gains for full agentic coding (multi-file, real repos) rather than function-level benchmarks.
+- Exact per-iteration improvement numbers from 2508.14419 were not read.
+
+## 3. AI review agents and LLM-as-judge: how well they catch bugs, and combining with human review
+
+### Takeaway
+AI reviewers catch a meaningful share of bugs but no tool reaches high precision and high recall at once: published F1 figures cluster around 50%, and nearly all numbers are vendor-run or competitor-run. Treat AI review as a recall booster that runs before a human, give it a spec to check against, tell it to skip style, and keep a human on the merge.
+
+### Cited Findings
+- Greptile's own benchmark (vendor-run, July 2025, 50 real bugs, a catch counts only for a line-level comment that explains the impact): Greptile 82%, Cursor 58%, CodeRabbit 44%, Graphite 6% (summary). [Greptile benchmarks](https://www.greptile.com/benchmarks)
+- A March 2026 comparison by a site that competes with both lists CodeRabbit at 51.5% F1 (50.5% precision, 52.5% recall) and Greptile at 50.2% F1 (66.2% precision, 40.4% recall): CodeRabbit leads recall, Greptile precision (summary, methodology unverified). [Morph comparison](https://www.morphllm.com/comparisons/coderabbit-vs-greptile)
+- A tools roundup reports the Martian benchmark put CodeRabbit first on F1 at 51.2% with 49.2% precision (secondhand, not verified against Martian). [Dupple roundup](https://dupple.com/learn/best-code-review-tools)
+- AIMultiple RevEval (updated March 2026; 309 PRs, developer input plus an LLM judge) ranked CodeRabbit most successful on 51% of PRs; Graphite could not be tested due to a dashboard bug (summary). [AIMultiple](https://aimultiple.com/ai-code-review-tools)
+- Anthropic Code Review for Claude Code (launched 9 March 2026, multi-agent PR review): internally the share of PRs receiving substantive review comments rose from 16% to 54%, and engineers marked fewer than 1% of findings as incorrect. These are Anthropic's self-reported figures with no independent check found. [SD Times](https://sdtimes.com/ai/anthropic-brings-code-review-into-claude-code/); [ITPro](https://www.itpro.com/software/development/anthropic-says-code-review-has-become-a-bottleneck-this-new-claude-code-feature-aims-to-solve-that)
+- GitHub (March 2026): Copilot code review passed 60 million reviews, usage grew 10x since April 2025 launch, it now makes up more than one in five code reviews on GitHub, and GitHub says 71% of reviews surface actionable feedback (product metric, not precision/recall) (summary). [StartupHub on the GitHub post](https://www.startuphub.ai/news/copilot-code-review-hits-60-million)
+- ImpossibleBench: LLM monitors catch simple test edits but often miss sophisticated cheating in complex multi-file cases (summary). [emergentmind](https://www.emergentmind.com/papers/2510.20270)
+- Anthropic docs (Oct 2026) on combining reviewers: use a reviewer that did not write the code (`/code-review` runs in a fresh subagent "not swayed by the reasoning that produced the code"); review against a written SPEC.md ("check every requirement is implemented and the listed edge cases have tests"); keep "skip style" because "a reviewer that's asked to find problems will always find something", and fixing every finding produces needless abstraction and tests; give the reviewer read-only tools; always ask the agent for evidence (the command and its output), since "All tests pass" alone "tells you very little". [Claude Code best practices](https://code.claude.com/docs/en/best-practices)
+- Feedback quality caps repair gains, and human feedback beat GPT-4 feedback by 1.58x in repaired-and-passing rate (Olausson et al., summary). [arXiv 2306.09896](https://arxiv.org/pdf/2306.09896.pdf)
+
+### Inferences
+- Layering: deterministic checks first (cheap, never hallucinate), then an AI reviewer for recall on logic, security and missed callers, then a human who reads the AI findings plus the diff. The human's job shifts to judging intent and spec fit, which the tools are worst at.
+- Pick precision-leaning settings for blocking gates and recall-leaning settings for advisory comments, since false positives on a blocking gate train people to ignore it.
+- A fresh-context reviewer is the practical answer to the intrinsic self-correction problem in section 2.
+
+### Gaps
+- No neutral, peer-reviewed cross-vendor precision/recall benchmark for AI PR reviewers was found as of Oct 2026; every number above is vendor, competitor or single-study.
+- No data found on Graphite's current (2026) catch rate beyond Greptile's July 2025 test.
+- No independent study found of how often developers act on Copilot or Claude review comments.
+
+## 4. Practical loop designs
+
+### Takeaway
+The loop that the evidence supports: write a spec and plan, get a failing test, implement in a small diff, run format then typecheck then lint then the tests that touch the change (found by impact analysis) then the full suite, enforce the must-pass checks with hooks or CI rather than prompt text, then a fresh-context review against the spec, then a human. Mutation and property tests are the strongest available defence against tests that pass for the wrong reason.
+
+### Cited Findings
+- Claude Code docs (Oct 2026), "Give Claude a check to run": "Claude stops when the work looks done. If it has nothing to run that tells it whether the work actually is done, 'looks done' is all it has to go on." Checks listed: a test file, a typecheck, a linter, a screenshot next to the mockup. Ways to wire them: in the prompt ("keep going until they pass"), `/goal` (a separate model checks the condition every turn), a `Stop` hook (harness-enforced), or `/code-review` in a fresh subagent. Also: write SPEC.md, then build from a fresh session. `/verify` builds and runs the app to catch "the kind of problem that tests and typechecks miss". [Claude Code best practices](https://code.claude.com/docs/en/best-practices)
+- Same docs: "If something has to happen every time, make it a hook, a deny rule, or a managed setting. CLAUDE.md is for guidelines"; keep the enforced set small since every hook fires wrongly sometimes; for real enforcement use a `command` or `http` hook with `onFailure: "block"`. [Claude Code best practices](https://code.claude.com/docs/en/best-practices)
+- Same docs on effort: raise effort for "a schema change where Claude has to find every reader of the old shape", where it checks more edge cases and verifies more. [Claude Code best practices](https://code.claude.com/docs/en/best-practices)
+- Targeted test selection: telling the agent exactly which tests cover the changed code cut regressions 70% in TDAD (2026, small study). [TDAD](https://arxiv.org/html/2603.17973v2)
+- Mutation testing at scale: Meta ACH turned mutants into 571 tests with 73% engineer acceptance (2025). [arXiv 2501.12862](https://arxiv.org/abs/2501.12862)
+- Property-based testing by an agent: Maaz, DeVoe, Hatfield-Dodds, Carlini (arXiv 2510.09907, Oct 2025, NeurIPS 2025 DL4C workshop) ran a Claude Code agent with Claude Opus 4.1 and Hypothesis over 100 popular Python packages; of 984 bug reports, 50 were manually reviewed and about 56% were valid bugs (32% reportable); the top-ranked 21 were 86% valid and 81% reportable. Anthropic wrote it up on 14 Jan 2026 (summary). [arXiv 2510.09907](https://arxiv.org/abs/2510.09907v1); [Anthropic write-up](https://www.anthropic.com/research/property-based-testing)
+- PBT-Bench (NeurIPS 2026 poster; 100 PBT problems over 40 Python libraries) reports structured Hypothesis prompting helps mid-tier models more than the strongest (summary). [PBT-Bench](https://neurips.cc/virtual/2026/poster/138920)
+- Differential testing against a reference or the old version (PatchDiff) found behavioural divergence in 29.6% of test-passing agent patches (ICSE 2026, summary). [arXiv 2503.15223](https://arxiv.org/abs/2503.15223)
+- Retrying against the same visible tests raises both pass rate and cheating (ImpossibleBench: 80% to 83% pass, 33% to 38% cheating). [ImpossibleBench HTML](https://arxiv.org/html/2510.20270v1)
+
+### Inferences
+- Signature changes: the TDAD result (context on which tests to run beats procedure) and the docs advice on "every reader of the old shape" both point to the same step: before editing, grep or use LSP "find references" for every caller, list them, and run the tests for each. A typechecker catches callers in typed code; in dynamic code only the grep plus tests do.
+- Small diffs matter because each check above (reviewers, mutation, differential tests) scales with diff size, and AI reviewer recall near 50% leaves more misses in a large diff.
+- Pre-commit hooks for format/lint/secret scanning plus a harness `Stop` hook for typecheck give two layers; CI is the final gate that the agent cannot edit (keep CI config and test files outside the agent's write permissions).
+- UI and full stack without a browser: typecheck the front end, unit/component tests with a DOM emulator, hit the real API with curl and query the DB directly, run the app's build, and write a small script that drives the real code; leave visual pixel checks to a human or to a screenshot step where policy allows. The Claude docs list a screenshot next to the mockup as a check, so when browsers are disallowed the visual layer is the one that stays unverified and should be reported as such.
+
+### Gaps
+- No controlled measurement found of "plan then implement" versus direct implementation for agent bug rates; the docs recommend it without numbers.
+- No study found quantifying diff size against agent defect rate.
+- No published evidence found on verifying UI changes without any rendering (code-only prediction of layout); this is practice, not measured.
+- Graphite, CodeRabbit and Copilot engineering posts with internal defect-catch data were not found beyond the product metrics above.

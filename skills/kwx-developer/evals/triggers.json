@@ -1,0 +1,26 @@
+{
+  "should_trigger": [
+    "add a GET /api/invoices endpoint with pagination to my Next app, same style as the orders one",
+    "audit this repo, I think the folders do things differently from each other",
+    "the error handling in my Rust crate is a mess, can you review it and tell me what to fix",
+    "build comments end to end: table, API and the list on the post screen",
+    "review PR 42 before I merge it",
+    "fix the race in the sync queue, two devices overwrite each other's edits",
+    "write the migration that adds a status column to orders without downtime",
+    "some files in lib export default and some don't, sort it out",
+    "my React Native app calls the API twice on every screen, why",
+    "set up proper error handling between the Expo app and the Hono backend"
+  ],
+  "should_not_trigger": [
+    "make the settings page look less generic",
+    "draw a custom icon for rank up in our style",
+    "design the onboarding screens for my workout app",
+    "explain in general how Rust ownership works, no project, just theory",
+    "commit and push my changes",
+    "summarize this paper about code review at Google",
+    "add these German words to Anki",
+    "change the Quickshell bar font size",
+    "configure a Claude Code hook that runs after every edit",
+    "write a cover letter for a backend developer job"
+  ]
+}
