@@ -154,7 +154,7 @@ Read the master file of each area you touch, then only the files the task needs.
 - `python3 ${CLAUDE_SKILL_DIR}/scripts/icon_check.py <icon.svg>...`: renders icons at 16 to 48px,
   checks padding and blur, prints an ASCII preview and a contact sheet to Read.
 - `python3 ${CLAUDE_SKILL_DIR}/scripts/gate_hook.py --event SessionStart|SubagentStart`: hook that
-  re-injects the critical rules and `[critical]` gate rows (`quality/enforcement.md`; not wired yet).
+  re-injects the critical rules and `[critical]` gate rows (`quality/enforcement.md`; wired in ~/.claude/settings.json since 2026-10-30).
 - `python3 ${CLAUDE_SKILL_DIR}/scripts/check_skill.py`: run after any edit to this skill; checks
   links, paths, dashes, pinned phrases, Contents lists, size budget and the gate greps.
 

@@ -9,7 +9,7 @@ The quality gate says it is permanent, but today it reaches an agent only when t
 3. Rules for the hook
 4. Rules for any future trigger
 5. Keeping the copies in sync
-6. Switching it on (not wired yet)
+6. Switching it on
 7. Verifying it works
 
 ---
@@ -61,9 +61,9 @@ The same rules live in several places: SKILL.md, `quality/quality-gate.md`, the 
 - Test documented commands by running them, not by comparing copies: `check_skill.py` takes the emoji and palette greps out of `quality-gate.md` section 14 and runs them on lines that must hit and lines that must not. A copied regex only tests the copy.
 - Run `python3 scripts/check_skill.py` after every edit to the skill. It could later run from `arch-config-push` or a git pre-commit hook (not wired).
 
-## 6. Switching it on (not wired yet)
+## 6. Switching it on
 
-Nothing in `~/.claude/settings.json` calls these scripts today. To switch the hooks on, merge this into the `hooks` object of `~/.claude/settings.json`. Append the SessionStart entry to the existing SessionStart array (it already holds the herdr hook); do not replace that array.
+On the author's machine these hooks are wired since 2026-10-30. On a new machine, merge this into the `hooks` object of `~/.claude/settings.json`. Append the SessionStart entry to the existing SessionStart array (it already holds the herdr hook); do not replace that array.
 
 ```json
 {
