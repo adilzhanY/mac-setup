@@ -1,6 +1,6 @@
 # Enforcement: making the gate permanent
 
-The quality gate says it is permanent, but today it reaches an agent only when the skill triggers and the agent reads SKILL.md. A `/clear`, a compaction or a freshly spawned subagent drops it. This file is the design for hooks that bring it back every time, adapted from how the ponytail plugin keeps its rules alive (SessionStart plus SubagentStart hooks, a marker line, fail open everywhere). The pieces are built (`scripts/gate_hook.py`, `scripts/check_skill.py`); **the hooks are not wired yet**, section 6 has the snippet.
+The quality gate says it is permanent, but today it reaches an agent only when the skill triggers and the agent reads SKILL.md. A `/clear`, a compaction or a freshly spawned subagent drops it. This file is the design for hooks that bring it back every time, adapted from how the ponytail plugin keeps its rules alive (SessionStart plus SubagentStart hooks, a marker line, fail open everywhere). The pieces are built (`scripts/gate_hook.py`, `scripts/check_skill.py`) and **the hooks are wired in ~/.claude/settings.json since 2026-10-30** (SessionStart on startup|resume|clear|compact|fork, SubagentStart on ui-designer). Section 6 has the snippet for a new machine.
 
 ## Contents
 
@@ -24,13 +24,14 @@ The quality gate says it is permanent, but today it reaches an agent only when t
 
 | Event | Matcher | What is injected | Size |
 |---|---|---|---|
-| SessionStart | `startup\|resume\|clear\|compact\|fork` | Marker line, a pointer to the gate, the headlines of the 10 critical rules | about 700 characters |
-| SubagentStart | `ui-designer` | Marker line, the full critical rules from SKILL.md, every `[critical]` row of `quality-gate.md`, the gate path, the mistakes library path | about 3,600 characters |
+| SessionStart | `startup\|resume\|clear\|compact\|fork` | Marker line, a pointer to the gate, the headlines of the 12 critical rules, the path of `house/owner-house-style.md`, and the mistakes libraries to read in full (the local paths that exist, then `quality/mistakes-library.md`) | about 1,000 characters |
+| SubagentStart | `ui-designer` | Marker line, the full critical rules from SKILL.md, every `[critical]` row of `quality-gate.md`, the gate path, and always the skill's `quality/mistakes-library.md` plus the local library paths that exist and the house file path | about 7,700 characters (cap 9,000) |
 
 - Re-inject on every SessionStart source, not only `startup`, so the rules return after every `/clear`, every compaction and in a forked session.
 - Inject the compact version, not the manual. The full gate is about 16 KB; the critical rules plus the `[critical]` rows are what must never be missed, and they point to the full file.
 - Build the injected text from the files at run time (`gate_hook.py` parses SKILL.md and the gate table). A pasted copy drifts the first time a rule is edited.
 - Scope the subagent injection to the agents that build UI, so Explore and backend agents do not pay for it.
+- General purpose subagents that build UI do not get the SubagentStart injection. A brief that sends UI work to one must tell it to load kwx-designer and read the mistakes libraries (local first, then `quality/mistakes-library.md`) and the house file.
 
 ## 3. Rules for the hook
 
@@ -40,7 +41,7 @@ The quality gate says it is permanent, but today it reaches an agent only when t
 4. **Doubt means inject.** A missing or empty `agent_type` gets the gate; only a known other agent type is skipped. Scoping must never silently drop the rules.
 5. **Never echo file text from a project into the prompt.** The hook reads only the skill's own files and passes the mistakes library as a path, not its contents.
 6. **Stay inside a budget.** The script caps the text at 9,000 characters and truncates with a pointer to the gate file.
-7. **No gate levels.** There is no "lite gate". If depth ever varies, vary depth, never whether the gate runs; a level that skips it becomes the way to skip it.
+7. **No gate levels.** There is no "lite gate". If depth ever varies, vary depth, never whether the gate runs; a level that skips it becomes the way to skip it. Rows always run; 1.1.0 scales only the write up (criticals and FAILs) and the reading list (`workflow/lean-build.md` section 0).
 8. **No blocking hook.** A Stop hook that refuses to finish is a different, riskier design. If one is ever added, it fails open and explains itself in its message.
 
 ## 4. Rules for any future trigger
@@ -58,7 +59,14 @@ The same rules live in several places: SKILL.md, `quality/quality-gate.md`, the 
 
 - One owner per rule. The others point to it instead of restating it. The ui-designer prompt reads SKILL.md rather than copying it; keep it that way.
 - Where a copy cannot be avoided, pin its load bearing phrases. `scripts/check_skill.py` fails when "Text never shrinks", "One primary action per view" or a `[critical]` gate id disappears, which is the reminder to update every copy.
-- Test documented commands by running them, not by comparing copies: `check_skill.py` takes the emoji and palette greps out of `quality-gate.md` section 14 and runs them on lines that must hit and lines that must not. A copied regex only tests the copy.
+- Test documented commands by running them, not by comparing copies: `check_skill.py` takes the emoji and palette greps out of `quality-gate.md` section 15 and runs them on lines that must hit and lines that must not. A copied regex only tests the copy.
+- **Owners after the 1.1.0 port of the user's own UI knowledge:**
+  - The user's local library (`~/.claude/ui-designer/mistakes.md`) owns user specific entries and wins on conflict.
+  - `quality/mistakes-library.md` owns the generalized versions (KM1 to KM18) and names the local id each comes from in its Source line.
+  - `quality/predict-from-code.md` owns the review arithmetic (glyph width factors 0.6 and 0.65). No other file states a different factor.
+  - `house/owner-house-style.md` owns the owner's taste and points at IRIS.md and the Iris README instead of copying their tables.
+  - The ui-designer agent prompt points at SKILL.md, the library, the house file and `quality/predict-from-code.md`.
+  - `check_skill.py` warns when a local entry has no KM counterpart and fails when a reversed rule (the 0.55 factor, destructive on hover) comes back.
 - Run `python3 scripts/check_skill.py` after every edit to the skill. It could later run from `arch-config-push` or a git pre-commit hook (not wired).
 
 ## 6. Switching it on
@@ -106,7 +114,7 @@ The SubagentStart matcher is a regex on the agent type, and `agent_type` is in t
 
 | Step | Result | Date |
 |---|---|---|
-| `gate_hook.py --selftest` | 22 of 22 pass | 2026-10-29 |
-| Hooks merged into settings.json | not yet run | |
+| `gate_hook.py --selftest` | 27 of 27 pass | 2026-11-01 |
+| Hooks merged into settings.json | done | 2026-10-30 |
 | ui-designer quotes the marker line | not yet run | |
 | SessionStart text survives `/compact` | not yet run | |

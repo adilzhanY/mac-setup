@@ -18,6 +18,8 @@ Desktop users have a precise pointer, a keyboard, big resizable windows, several
 
 - macOS: points; Retina is 2x. Windows: effective pixels (epx), scaled by the display scale factor (100, 125, 150, 200 percent). GNOME and KDE: logical pixels with fractional scaling.
 - Never compare a layout breakpoint against raw device pixels. A 1920 px wide screen at 125 percent is 1536 logical px. Breakpoints use logical width.
+- Room tests divide by the app's own UI scale too, not only the OS scale: a 1920 px screen at an app scale of 1.25 lays out like 1536 px. Compare a scaled metric, or sum the pieces' real widths against the room, never raw `screen.width`. When it does not fit, fold the lowest priority items in a fixed, documented order until the rest fits (the user's bar folds screenshot, weather, bluetooth, wifi, layout, load); sections never overlap (KM6, `visual/spacing-and-layout.md` section 8).
+- Qt Quick and Quickshell specifics (scale tokens, implicit sizes, hot reload): `platforms/desktop/qt-qml.md`.
 
 ## 2. Type: sizes per platform
 
@@ -111,6 +113,7 @@ Rules: nested radii are concentric (inner radius = outer radius minus the paddin
 - Set a sensible minimum window size so nothing overlaps; never set min = max to block resizing.
 - At very wide sizes, cap content width (readable column about 600 to 760 px for text, lists in a max width container) and center or anchor it (GNOME adaptive guidance). Long lines and stretched forms are the most common wide window defect.
 - Remember and restore window size and position on relaunch (HIG, KDE).
+- **Use the width.** At 1280 px and wider, settings forms take two columns of related fields, and lists and tables take the full content width. A single column narrower than 60% of the area with nothing beside it fails.
 
 ## 7. Pointer states: hover, press, focus, disabled
 
@@ -147,4 +150,6 @@ Rules:
 - [ ] Targets >= 24 px, frequent ones >= 28 px, touch mode >= 40 epx.
 - [ ] Window works at the minimum size (1024 x 600 at least) and at 2560+ wide with capped content width.
 - [ ] Inactive window appearance handled.
+- [ ] Every room test divides by the app's own scale; overflow folds items in a fixed order, sections never overlap.
+- [ ] At 1280 px and wider no lone column under 60% of the area.
 - [ ] Light, dark, high contrast and accent color all respected.

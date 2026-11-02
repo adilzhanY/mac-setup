@@ -38,6 +38,8 @@ Rule: write the top level destinations as a list of nouns before drawing anythin
 - Badges only for something that needs attention (unread messages), not marketing. A red count badge on "Explore" is noise.
 - iOS 26: the tab bar floats on Liquid Glass and can minimize while scrolling, with an accessory (like a mini player) moving inline. A dedicated search tab may sit at the trailing end.
 - Android: bar height 64 dp (M3 Expressive flexible bar) or 80 dp (baseline). On medium windows use the horizontal item layout (icon beside label) or switch to a rail.
+- **Bar height comes from its content:** icon size + label line height x the largest allowed font scale + vertical padding + the bottom safe area inset. After replacing the label with a custom Text or a larger variant, set `tabBarStyle` height and `paddingBottom` from `useSafeAreaInsets()`; never keep the library default. Check the web build too.
+- **Labels fit their slot** at the largest font scale: chars x px x 0.65 <= slot width minus 8 (about 97 px per slot in a 4 tab bar at 390). Shorten the word before shrinking ("Mitglied", not "Mitgliedschaft").
 
 ## 3. Top bars, titles and back
 
@@ -47,6 +49,7 @@ Rule: write the top level destinations as a list of nouns before drawing anythin
 - One primary action per bar, on the trailing side, using the prominent style (Done, Send). Max three groups of toolbar items (HIG).
 - Do not put a text button directly next to an icon button without space; they read as one control (HIG toolbars).
 - Android: up arrow in the top app bar plus predictive back. Back must always be predictable: it leaves the current screen or closes the topmost sheet, never triggers an action.
+- **Auth guards (Expo Router, KM18):** screens a guard switches to (login, signup) are direct `Stack.Screen`s of the guarded stack, not a nested group with its own Stack and `initialRouteName` (that shows "Unmatched Route"). Every file under `src/app` is a route, so tests and helpers live outside it.
 
 ## 4. Hierarchy, drill down and split views
 
@@ -114,3 +117,5 @@ Rules:
 - Press back (or swipe) from every screen. Each press must go to the screen the user expects, close the topmost layer first, and never perform an action.
 - Rotate, resize to split view and back. Selection, scroll position and stack survive.
 - Turn off gestures mentally: every swipe action (dismiss, back, delete) also has a visible control.
+- Tab bar: height computed from content and insets; every label fits its slot at the largest font scale.
+- Auth guard: a router render test per session state (signed out lands on login, signed in on home); `find src/app -path "*__tests__*" -o -name "*.test.*"` prints nothing.

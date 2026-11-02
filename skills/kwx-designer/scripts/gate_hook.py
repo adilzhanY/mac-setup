@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Claude Code hook that re-injects the kwx-designer quality gate.
 
-SessionStart (startup, resume, clear, compact, fork): a short pointer plus the
-headlines of the critical rules, so the main agent keeps them after /clear
-and after compaction.
-SubagentStart (ui-designer only): the full critical rules from SKILL.md plus
-every [critical] row of quality/quality-gate.md, read at run time so the
-injected text can never drift from the files.
+SessionStart (startup, resume, clear, compact, fork): a short pointer, the
+headlines of the critical rules, the owner's house style file and the mistakes
+libraries to read in full (local paths that exist, then the skill's copy), so
+the main agent keeps them after /clear and after compaction.
+SubagentStart (ui-designer only): the full critical rules from SKILL.md, every
+[critical] row of quality/quality-gate.md, the house file, and always the
+skill's quality/mistakes-library.md plus the local libraries that exist. All
+read at run time so the injected text can never drift from the files.
+Local library: ~/.claude/ui-designer/mistakes.md when it exists.
 
 Fails open: any error still prints a short inline fallback when it can, and
 the script always exits 0. Standard library only.
@@ -34,13 +37,21 @@ DEFAULT_AGENTS = "ui-designer"
 MISTAKES = os.path.expanduser("~/.claude/ui-designer/mistakes.md")
 
 FALLBACK = (
-    "Critical rules: intuitive beats clever; one primary action and one accent per view; "
-    "hierarchy from type, weight, colour and space, not boxes; tokens before pixels; "
-    "every action answers and every state exists (loading, empty, error, offline, limit); "
+    "Critical rules: read the mistakes library first (~/.claude/ui-designer/mistakes.md, then "
+    "kwx-designer/quality/mistakes-library.md) and kwx-designer/house/owner-house-style.md; "
+    "intuitive beats clever; one primary per view with colour for meaning (status as chips "
+    "with words and numbers); hierarchy from type and weight, cards where they help; one "
+    "scale for every size; every action answers and every state exists (loading, empty, "
+    "error, offline, limit); daily use first, rich not sparse; nothing destructive on hover; "
     "no AI slop (no emoji or symbol icons, no default purple gradients); honest psychology "
     "only; compute sizes and contrast instead of guessing, text never shrinks to fit; "
     "no em or en dashes. Run quality/quality-gate.md before calling any UI done."
 )
+
+
+def local_mistakes():
+    """Existing local mistakes library paths (the user's file)."""
+    return [MISTAKES] if os.path.isfile(MISTAKES) else []
 
 
 def read_stdin(timeout=1.0):
@@ -104,6 +115,9 @@ def build_context(event, skill_dir=SKILL_DIR):
     """Text to inject. Always starts with the marker line, never raises."""
     head = f"{MARKER} (kwx-designer, {event})"
     gate = os.path.join(skill_dir, "quality", "quality-gate.md")
+    house = os.path.join(skill_dir, "house", "owner-house-style.md")
+    library = os.path.join(skill_dir, "quality", "mistakes-library.md")
+    local = local_mistakes()
     try:
         rules = critical_rules(skill_dir)
         if event == "SubagentStart":
@@ -114,15 +128,20 @@ def build_context(event, skill_dir=SKILL_DIR):
                 "Critical items of the quality gate (each blocks shipping on its own):",
                 *critical_gate_rows(skill_dir),
                 f"Before reporting done run the whole gate: {gate}",
+                "Read the mistakes library in full before writing, local first (it wins on conflict): "
+                + ", ".join(local + [library]),
+                f"Working for this user: read {house} before UI code.",
             ]
-            if os.path.exists(MISTAKES):
-                parts.append(f"Read the mistakes library in full before writing: {MISTAKES}")
         else:
             parts = [
                 head,
                 "UI work follows the kwx-designer skill and goes through the ui-designer agent where the user's rules say so.",
                 f"No UI is done before {gate} passes. Critical rules: "
                 + "; ".join(headline(r) for r in rules),
+                f"Working for this user: read {house} before UI code.",
+                "Before UI work read the mistakes library in full: "
+                + (", ".join(local) if local else "no local library")
+                + f" then {library} (local wins on conflict).",
             ]
         text = "\n".join(parts)
     except Exception as exc:  # fail open: a read error never means "no rules"
@@ -206,6 +225,11 @@ def selftest():
     check("SubagentStart: gate row A1 present", "- A1 One obvious next step" in sub)
     start = json.loads(output("SessionStart", {}))["hookSpecificOutput"]["additionalContext"]
     check("SessionStart: short (under 2000 characters)", len(start) < 2000)
+    check("SessionStart: names the house file", "owner-house-style" in start)
+    check("SessionStart: names the skill's mistakes library", "mistakes-library.md" in start)
+    check("SubagentStart: names the skill's mistakes library", "mistakes-library.md" in sub)
+    check("SubagentStart: names the house file", "owner-house-style" in sub)
+    check("FALLBACK names the mistakes library", "mistakes" in FALLBACK)
 
     # 2. Scoping: other agents get nothing, unknown agents still get the gate.
     check("SubagentStart: Explore agent gets nothing", output("SubagentStart", {"agent_type": "Explore"}) == "")

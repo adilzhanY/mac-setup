@@ -1,0 +1,39 @@
+{
+  "should_trigger": [
+    "write tests for the discount calculation in lib/discount.ts",
+    "test my app before I ship it tomorrow",
+    "QA the new onboarding feature, try to break it",
+    "is the checkout flow tested enough?",
+    "find bugs in the habit streak logic",
+    "why is my test flaky? it passes locally and fails in CI one time in five",
+    "audit my tests, I have no idea if they check anything",
+    "test the signup flow on Android",
+    "check accessibility of the login page",
+    "load test my API, I want to know how many users it can take",
+    "write Playwright tests for the pricing page",
+    "my snapshot tests keep failing after every change, what should I do",
+    "write a bug report for the crash when I rotate the phone on the editor screen",
+    "review the tests in this PR, are they any good",
+    "set up mutation testing for the billing module",
+    "what should I test in my Supabase RLS policies",
+    "add tests for my Rust CLI, the argument parsing especially",
+    "prepare a release checklist for the Play Store submission",
+    "the coverage is 85 percent but bugs still get through, why",
+    "check the app works in Russian and Kazakh, plurals and long words",
+    "test my Quickshell panel, it is QML"
+  ],
+  "should_not_trigger": [
+    "make the settings page look less generic",
+    "design the onboarding screens for my workout app",
+    "draw a custom icon for the streak badge",
+    "build comments end to end: table, API and the list on the post screen",
+    "add a GET /api/invoices endpoint with pagination",
+    "refactor the sync module so it is easier to read",
+    "run a penetration test on my production server and find exploits",
+    "explain in general how TCP congestion control works",
+    "commit and push my changes",
+    "add these German words to Anki",
+    "write a cover letter for a QA engineer job",
+    "change the Quickshell bar font size"
+  ]
+}

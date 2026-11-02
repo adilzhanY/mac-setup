@@ -67,7 +67,9 @@ Testable rule: **space inside a group is at most half the space between groups.*
 | Content grid | 1120 to 1280 px |
 | Full-bleed media | viewport, with inner content still capped |
 
-You do not have to fill the screen. A narrow centred column on a wide display looks deliberate, a stretched one looks broken (Refactoring UI).
+You do not have to fill the screen with one stretched column. A narrow centred column on a wide display looks deliberate, a stretched one looks broken (Refactoring UI).
+
+**Use the width.** At 1280 px and wider, no screen leaves more than about 35% of its content area empty beside its main column: settings forms in two columns of related fields, an article index as a 3 column card grid, prose at 65 to 75 characters with an aside, admin tables at full container width.
 
 ## 6. Layout grids and breakpoints
 
@@ -98,6 +100,7 @@ You do not have to fill the screen. A narrow centred column on a wide display lo
 - Horizontal padding in px, vertical spacing in rem (Josh Comeau): text growth should not starve line length.
 - Test at 360, 390, 768, 1024, 1280, 1440 and 1920 px, and at 50 percent zoom for ultra-wide (Vercel).
 - Design for short, average and very long content (names, translations: German runs about 30 percent longer than English).
+- **Room tests use the drawn units (KM6).** A decision that compares a width (show three sections or two, collapse the sidebar) divides by the app's own scale: a 1920 px screen at 1.25 lays out like 1536 px. Web: em breakpoints or container queries. React Native: width / fontScale, or `onLayout`. QML: `screen.width / UiScale.scale` or the font token test. Never compare raw `screen.width` or `innerWidth` against a constant chosen at scale 1. Check: grep `screen.width`, `innerWidth`, `Dimensions.get('window').width`; each comparison includes the scale.
 
 ## 9. Review checklist
 
@@ -108,3 +111,5 @@ You do not have to fill the screen. A narrow centred column on a wide display lo
 - [ ] Reading text capped at about 65 ch; hero fits on one screen with a visible hint of more.
 - [ ] No horizontal scroll at 320 px; nothing clips at 200 percent text.
 - [ ] Hit targets 44 px or more on touch.
+- [ ] Every room test divides by the app's own scale.
+- [ ] At 1280 px and wider, no more than about 35% of the content area is empty beside the main column.

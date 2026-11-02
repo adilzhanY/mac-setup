@@ -45,6 +45,18 @@ Optional, measured: `PRAGMA cache_size = -20000` (20 MB), `PRAGMA temp_store = M
 - `synchronous = NORMAL` in WAL mode never corrupts the database, but a transaction committed just before a power cut can be lost. Use `FULL` for money, medical, or anything you told the user is saved.
 - Foreign keys being off by default is the most common SQLite integrity bug. Assert it in a test: `PRAGMA foreign_keys` returns 1 on a connection from your pool.
 
+Node 22.13 and newer (24 recommended): for a small server or script, try the built in `node:sqlite` before adding better-sqlite3: no native build, no install scripts to allow, no ABI breakage on Node upgrades. Read the installed version's docs for its stability level. Choose better-sqlite3 only when a needed feature is missing, and record why in Decisions. (Trial 2026-11-01: web-B and both android builds used `node:sqlite` without problems; web-A needed an `allowScripts` entry for better-sqlite3.)
+
+```ts
+// node:sqlite (built in, Node 22.13+)
+import { DatabaseSync } from 'node:sqlite';
+export const db = new DatabaseSync(path);
+db.exec(`PRAGMA journal_mode = WAL;
+         PRAGMA foreign_keys = ON;
+         PRAGMA busy_timeout = 5000;
+         PRAGMA synchronous = NORMAL;`);
+```
+
 ```ts
 // better-sqlite3
 import Database from 'better-sqlite3';
@@ -174,4 +186,5 @@ Rules for the upload queue model:
 | Upload handler idempotent | applying the same op twice gives the same state | server test that posts one operation twice |
 | No `updated_at > cursor` sync | none, or with an overlap and xmin guard | `grep -rniE "updated_at\s*>\s*" src/ server/` |
 | Tombstones for deletes | deleted rows reach other devices | test: delete on device A, sync B, record gone on B |
+| Native module justified | no better-sqlite3 in package.json without a Decisions entry (Node 22.13+) | `rg -n better-sqlite3 package.json`; `rg -n -i better-sqlite3 DECISIONS.md README.md` |
 | Multi device conflict test | different fields edited offline on 2 devices both survive | integration test with two local DBs and one server |

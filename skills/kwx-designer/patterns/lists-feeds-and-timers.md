@@ -8,7 +8,8 @@ Interface pieces whose data keeps changing: paged lists and feeds, search as you
 2. Volume
 3. Search as you type
 4. Timers and live durations
-5. Checks
+5. Chat, logs and streaming lists
+6. Checks
 
 ---
 
@@ -47,8 +48,20 @@ Interface pieces whose data keeps changing: paged lists and feeds, search as you
 4. Durations over a minute read as m:ss or h:mm:ss, never "245s". `Intl.DurationFormat` with `style: "digital"` gives `0:04:05` (Baseline 2025, newly available since March 2025, per MDN); pad by hand where the target is older.
 5. Accessibility: `role="timer"` on the display (its live setting is off by default), so a screen reader is not interrupted every second. Announce only milestones ("1 minute left", "Time is up") in a separate polite live region. Give readable text ("45 seconds") or `<time datetime="PT45S">`.
 6. The deadline itself comes from the server or a stored value, never from page load (`psychology/psychology.md`, honesty rules).
+7. A running timer is highlighted in its list with the live duration (not only "läuft").
+8. After a sane limit (10 h, or past midnight) the timer bar shows a calm inline hint with the start time and a fix action ("Läuft seit 08:12. Vergessen?" with one click to set the real end).
+9. The stop button is neutral or primary, never danger red: stopping is the normal action.
 
-## 5. Checks
+## 5. Chat, logs and streaming lists
+
+The view follows new content while the user is at the bottom (KM14).
+
+1. Only real input releases following: wheel, touchpad, drag, flick, keyboard. Web: `wheel`, `touchmove`, `keydown` or a scrollbar `pointerdown`, not the bare `scroll` event. React Native: `onScrollBeginDrag`. QML: a contentY change while the Flickable is `moving`.
+2. Programmatic scrolls, content growth and layout shifts never release it.
+3. Each new message, each answer start and settling back at the bottom re-arm it.
+4. Compute the bottom inline in the change handler, never from a derived binding of the value that just changed (a binding read there returns the old value, and the view trails by the difference).
+
+## 6. Checks
 
 | Check | Pass when | Verify in code |
 |---|---|---|
@@ -60,3 +73,5 @@ Interface pieces whose data keeps changing: paged lists and feeds, search as you
 | Fresh results | The previous search request is aborted or its late response dropped | Find the `AbortController` or the query comparison |
 | Timer correct | Remaining time computed from an end timestamp; one interval | Read the tick function and the effect dependencies |
 | Timer readable | m:ss or h:mm:ss; `role="timer"`; milestone announcements only | Read the formatter and the markup |
+| Forgotten timer | Running entry highlighted with live duration; a warning with the start time and a fix after 10 h; stop is not red | Read the timer bar branches and the stop button variant |
+| Follow released by input only | The handler setting follow to false is reachable only from input events | Trace every write of the follow flag |

@@ -52,7 +52,7 @@ export type CreateOrder = z.infer<typeof CreateOrder>;   // same name for schema
 - A parse function returns a typed value or fails. After it, the rest of the code never re-checks.
 - Use `safeParse` at boundaries where failure is expected (user input) and return a structured 400/422 with the issues. Use `parse` (throws) where failure means a bug or a broken upstream (your own config, internal service responses).
 - When input and output differ (transforms, coercion, defaults), the type before parsing is `z.input<typeof S>` and after is `z.output<typeof S>` (`z.infer` is the output). Form libraries need the input type.
-- Branded output for values that must be proven valid elsewhere: `z.email().brand<"Email">()` (see types-and-strictness.md section 7).
+- Branded output for values that must be proven valid elsewhere: `z.string().max(254).refine(isEmailLoose).brand<"Email">()` (see types-and-strictness.md section 7, and the email rule in section 5). Zod's default `z.email()` pattern rejects internationalised domains such as anna@müller.de; do not use it without a custom pattern.
 
 ## 3. Choosing a library
 
@@ -137,6 +137,20 @@ Treat it like any external input: parse with the same schema you gave the model,
 - **Dates.** Accept ISO 8601 strings (`z.iso.datetime({ offset: true })`, `z.iso.date()`), then convert. Do not accept arbitrary strings into `new Date()`.
 - **Enums.** Closed sets are `z.enum([...])` from the same `as const` array that defines the TypeScript union.
 - **Error messages.** Customize with the `error` parameter (Zod 4) only where users see them; keep machine-readable issue paths for APIs. `z.prettifyError()` for logs and CLIs.
+- **Email.** Validate loosely: one `@`, a non empty local part, a domain with a dot, length at most 254, no spaces, control characters or angle brackets; accept Unicode domains and convert the domain with `domainToASCII` (`node:url`) or `URL` for storage and comparison. Ownership is proven by a confirmation email, not by a regex. Test cases: `anna@müller.de` and `x@xn--mller-kva.de` pass, `<b>@x.de` and `a@b` fail. (Trial 2026-11-01: web-A rejected anna@müller.de; web-B accepted it but also accepted `<b>@x.de`.)
+
+```ts
+import { domainToASCII } from "node:url";
+export function isEmailLoose(s: string): boolean {
+  const at = s.lastIndexOf("@");
+  if (at < 1 || s.indexOf("@") !== at || s.length > 254 || /[\s<>\x00-\x1f\x7f]/.test(s)) return false;
+  const ascii = domainToASCII(s.slice(at + 1));
+  return ascii.includes(".") && !ascii.startsWith(".") && !ascii.endsWith(".");
+}
+```
+
+In client code (browser, Expo), `node:url` does not bundle: replace `domainToASCII(d)` with `new URL("http://" + d).hostname` inside a try/catch that returns false. Or keep the schema in a server only module and validate on the client with the same checks minus the punycode step.
+
 - **Do not trust a client-supplied ID for ownership.** Validation checks shape; authorization checks that this user may touch this resource. Both are required.
 
 ## 6. Inside the boundary: trust the types
@@ -155,4 +169,5 @@ Treat it like any external input: parse with the same schema you gave the model,
 - **No raw body writes.** Pass: no `req.body`/`await request.json()` passed directly into an ORM call. Verify: `rg -n '(data|values|set):\s*(req\.body|body)\b' -t ts .`
 - **One validation library.** Pass: at most one of zod, valibot, yup, joi, superstruct, io-ts, arktype, ajv (ajv may coexist for JSON Schema). Verify: `rg -o '"(zod|valibot|yup|joi|superstruct|io-ts|arktype|class-validator)"' -g 'package.json' -g '!**/node_modules/**' . | sort | uniq -c`
 - **Server actions validate.** Pass: every exported function in a `"use server"` file calls a schema parse and an auth check before its first DB call. Verify: `rg -l "^['\"]use server['\"]" -t ts .` then read each export.
+- **Email accepts IDN.** Pass: a schema test with anna@müller.de passing and `<b>@x.de` failing exists. Verify: `rg -n 'müller' -g '*.test.*' .`; `rg -n 'z\.email\(\)' -t ts .` finds none without a pattern.
 - **Interface and schema not duplicated.** Pass: no `interface X` next to `const X = z.object`. Verify: `rg -n 'z\.infer<' -t ts . | wc -l` vs manual types with the same names; review.

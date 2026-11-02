@@ -14,7 +14,10 @@ Checks, all relative to the skill root:
   budget    SKILL.md stays under about 5k tokens, description under 1024 chars
   pins      load bearing phrases are still present (see PINS)
   greps     the fast check greps in quality/quality-gate.md section 12 still
-            catch known bad lines and pass known clean ones (runs real grep)
+            catch known bad lines and pass known clean ones (runs real grep):
+            swallowed errors, stubs, focused tests, secrets, SQL from strings,
+            dashes, date formatting without a timeZone, and client IP headers
+            (forwarded) read outside the one helper
 
 Usage:
     python3 check_skill.py            check the skill this script lives in
@@ -41,13 +44,22 @@ SKILL_DIRS = ("ai-agents", "architecture", "backend", "data", "evals", "language
 # Phrases that the router, evals and other files rely on. Rewording one trips
 # the check, which is the reminder to update every copy that repeats it.
 PINS = {
-    "SKILL.md": ["## Critical rules"],
+    "SKILL.md": ["## Critical rules", "Read the topic file before writing its code", "Scale process to risk and size",
+                 "A small fix or one file change", "new-project-from-brief.md"],
     "quality/quality-gate.md": [
         "An item marked **[critical]** blocks shipping on its own.",
         "## 12. Fast checks",
-        *[f"| {i} [critical] |" for i in ("A1", "A3", "A4", "B1", "B4", "C1", "C2", "C3", "D1",
-                                          "E1", "E2", "F1", "F2", "F3", "F4", "H1", "I1")],
+        "## 13. K. Brief and handover",
+        "right password from IP B",
+        *[f"| {i} [critical] |" for i in ("A1", "A3", "A4", "B1", "B4", "C1", "C2", "C3", "C9", "D1",
+                                          "E1", "E2", "F1", "F2", "F3", "F4", "F7", "H1", "I1",
+                                          "K1", "K2", "K3")],
     ],
+    "languages/typescript/dates-and-money.md": ["timeZone: PLACE_ZONE"],
+    "languages/typescript/react-and-react-native.md": ["2147483647"],
+    "backend/auth.md": ["never a hard block that refuses the correct password"],
+    "backend/rate-limits-retries-timeouts.md": ["TRUST_PROXY_HOPS"],
+    "workflow/new-project-from-brief.md": ["Never call AskUserQuestion", "Not finished"],
     "workflow/audit-and-ask.md": ["| (a) later | `Later` |", "| (b) plan | `Plan a fix` |",
                                   "| (c) keep | `Keep as is` |", "Never re-ask, never fix unasked"],
     "workflow/codebase-first.md": ["**the map lives in the conversation.**"],
@@ -73,6 +85,12 @@ GREP_CASES = {
             ["sql`SELECT * FROM t WHERE id = ${id}`", 'db.query("SELECT * FROM t WHERE id = $1", [id])',
              'sqlx::query!("SELECT 1")']),
     "dashes": (["a \u2014 b", "pages 1\u20132"], ["a - b", "x -> y"]),
+    "timezone": (["new Intl.DateTimeFormat(locale, { hour: '2-digit' })", "d.toLocaleTimeString('de-DE')",
+                  "d.toLocaleDateString()", "d.toLocaleString('de-DE')"],
+                 ["new Intl.DateTimeFormat(locale, { hour: '2-digit', timeZone: GYM_ZONE })",
+                  "d.toLocaleTimeString('de-DE', { timeZone: PLACE_ZONE })", "const n = 5"]),
+    "forwarded": (["req.headers['x-forwarded-for']", "headers.get('X-Forwarded-For')", "h.get('x-real-ip')"],
+                  ["const ip = clientIp(request)", "const forwardedTo = x"]),
 }
 
 
@@ -185,6 +203,11 @@ def check_version(root, skill):
         return ["version: SKILL.md frontmatter has no metadata.version"]
     if m.group(1) != want:
         return [f"version: VERSION says {want}, SKILL.md metadata.version says {m.group(1)}"]
+    rpath = os.path.join(root, "RELEASES.md")
+    if os.path.exists(rpath):
+        r = re.search(r"^## (\d+\.\d+\.\d+)", read(rpath), re.M)
+        if r and r.group(1) != want:
+            return [f"version: RELEASES.md newest entry is {r.group(1)}, VERSION says {want}"]
     return []
 
 
@@ -340,6 +363,10 @@ def selftest():
         d = build("version")
         write(d, "VERSION", "1.2.4\n")
         expect("VERSION out of step with SKILL.md is caught", run_checks(d, pins), "version")
+
+        d = build("releases")
+        write(d, "RELEASES.md", "# Releases\n\n## 1.2.2\n\nold entry\n")
+        expect("RELEASES.md newest entry out of step with VERSION is caught", run_checks(d, pins), "version")
 
         d = build("budget")
         write(d, "SKILL.md", "x" * (SKILL_CHAR_BUDGET + 1), "a")

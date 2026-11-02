@@ -17,7 +17,8 @@ Numbers marked (est.) were read off video frames, not stated.
 9. Gestures
 10. Long scroll pages: sticky action, sticky title
 11. Empty states
-12. Checks
+12. Detail screens and filter chips
+13. Checks
 
 ---
 
@@ -56,7 +57,7 @@ Numbers marked (est.) were read off video frames, not stated.
 3. Four building blocks: cards (the main grouping tool, because white space is scarce), text or links, images, inputs.
 4. Do not nest cards inside cards. Note cards inside a Notes container card create "padding on padding" that cramps width. Group the set with a section header ("Notes >") and white space instead.
 5. Section headers: "Title >" tappable with a chevron, optional text tabs on the right ("Recents / Suggested").
-6. Date group labels small caps: today in red ("FRIDAY, FEB 27"), "TOMORROW" in grey. Events with a 3 px coloured left bar; the current event row gets a faint tinted background.
+6. Date group labels small caps: today in the brand colour, red only when red is the brand ("FRIDAY, FEB 27"), "TOMORROW" in grey. Events with a 3 px coloured left bar; the current event row gets a faint tinted background. The bar is category colour used as data (one fixed hue per category, with its name nearby), not decoration.
 
 ## 5. One screen does one thing
 
@@ -104,7 +105,13 @@ Numbers marked (est.) were read off video frames, not stated.
 3. No results: muted illustration, "0 results", "Oops, nothing found / Your search didn't turn anything up. Did you mean 'Sprint'?" (link), and "Start a New Note". Never just "Please try again".
 4. Search screen: filter chips (Recents, Notes, Tasks, Events, Scratch), recent rows with type icon and source in grey, relative time right aligned ("3h ago", "16h ago", "2d ago").
 
-## 12. Checks
+## 12. Detail screens and filter chips
+
+**Detail screens carry content and labelled facts.** Top to bottom: the category tag in its colour, the title, status chips, a fact card with short labels above values (Wann, Trainer:in, Wo, Plätze) and brand tinted icons, the description (what it is, what to bring), the deadline line ("Abmeldung bis Mo., 18:00 Uhr"), then the action, sticky at the bottom. Short labels above values are right on detail screens; the no "Label: value" rule is for summary cards. When the data model lacks a description field, ask the developer for one rather than shipping a bare screen.
+
+**Filter chips.** Labelled rows, one per dimension; the selected chip filled with the brand colour, white text and a check; unselected chips outlined; one "Alle" first per row. A week switch is a two segment control at the top (Diese Woche, Nächste Woche). Full filter rules in `patterns/data-dense-tools.md` section 4.
+
+## 13. Checks
 
 | Check | Pass when | Verify in code |
 |---|---|---|
@@ -119,3 +126,5 @@ Numbers marked (est.) were read off video frames, not stated.
 | Sheets dismiss | Swipe down and the X both close the sheet | Read the sheet props |
 | Gesture fallback | Each gesture action also exists as a visible control | Map each gesture handler to a button or menu item |
 | Destructive last and red | Delete is the last menu item and uses the danger token | Read the menu item order |
+| Detail screen complete | Category tag, status chips, labelled facts, description, deadline, sticky action | Read the detail screen's children in order |
+| Filter rows labelled | Each chip row has a label and one Alle; selected chip brand filled with a check | Read the chip component's selected style |

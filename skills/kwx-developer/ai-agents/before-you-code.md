@@ -140,7 +140,7 @@ After coding:
   Rejected: max(number)+1 in app code (races under two servers).
   ```
 - In TODO.md, tick what you finished and add the follow-ups you noticed but did not do (duplicate helper, missing test, outdated dependency). Adding the item is the right move; doing the work inside this task is scope creep.
-- If the project has neither file and you made a decision worth keeping, say so in the report and offer to create it. Do not create it unasked.
+- If the project has neither file and you made a decision worth keeping, say so in the report and offer to create it. Exception: when the brief asks for decisions or open questions in the README, or the client cannot be reached, create those README sections; the brief is the ask (`workflow/new-project-from-brief.md` section 7).
 
 ## 8. Define done before the first edit
 
@@ -150,6 +150,14 @@ Write down what "done" means before editing. Reason: without a check to run, "lo
 - Feature: a short acceptance list (inputs, outputs, error cases, who may call it), plus the tests that will prove each item.
 - Refactor: "behaviour identical", proven by the existing suite plus a differential check (see `tests-and-honesty.md`).
 - If the task is underspecified on something that changes the design (data model, public API, permissions), ask one round of questions before coding. Underspecified multi-turn work loses about 39% on average because early assumptions stick. Evidence: medium.
+- Product (not a library): list the daily workflows the brief implies and build them as scope (`workflow/new-project-from-brief.md` section 3). "Skip what nobody asked for" trims options and abstractions, never these; a workflow you do not build goes to README "Not finished" with the reason.
+- Stateful things: list each stateful thing the spec shows the user (a 10 visit card, a balance, free places, a waitlist position, an invoice status, a running timer) with its life cycle: created by, changed by which event, what happens at zero or at the end, who may change it. Each event gets code and a test. A value shown to users that no event changes is a gap: build the smallest event that changes it (for example "booking a course uses one visit, cancelling in time gives it back, booking at 0 visits is refused") or put it at the top of "Not finished". It is never filed as a decision. (Trial 2026-11-01: the 10 visit card never counted down in either arm; the skilled arm filed it as a decision.)
+
+  | Stateful thing | Created by | Changed by (event) | At zero or at the end | Who may change it | Test |
+  |---|---|---|---|---|---|
+  | 10 visit card | purchase | booking uses 1, timely cancel gives 1 back | booking refused with `no_visits_left` | the member through booking, an admin | `booking.uses-visit.test.ts` |
+
+- No unasked variant that fights the framework: before building something harder than the brief needs (a localized 404, a router trick, a feature marked experimental), estimate it. If the brief does not ask for it and the simple version satisfies the brief, build the simple version and write the upgrade in "Not finished" with its trigger. A fight with the framework is timeboxed (`verification-loop.md` section 3). (Trial 2026-11-01: web-A's per language 404 cost about 2 hours of work and two bugs; web-B shipped one bilingual 404 in one commit.)
 
 ## 9. Checks
 
@@ -162,3 +170,6 @@ Write down what "done" means before editing. Reason: without a check to run, "lo
 | Callers mapped | every changed shape has a caller list and covering tests | rg / LSP output in the plan |
 | Decisions respected | no conflict with DECISIONS.md, or the user approved it | `rg -n -i '<area>' DECISIONS.md docs/adr/` reviewed |
 | Done defined | a failing test or an acceptance list exists before the edit | the test file or list is in the plan |
+| Daily workflows listed (product) | each maps to a route, handler or test, or is in Not finished | read the plan |
+| Life cycle table | every stateful thing has its events and a zero case test, or a Not finished line | read the plan and test names |
+| Beyond the brief choices estimated | each has an estimate in the plan | read the plan |

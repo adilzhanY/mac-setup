@@ -9,7 +9,9 @@
     "write the migration that adds a status column to orders without downtime",
     "some files in lib export default and some don't, sort it out",
     "my React Native app calls the API twice on every screen, why",
-    "set up proper error handling between the Expo app and the Hono backend"
+    "set up proper error handling between the Expo app and the Hono backend",
+    "here is the brief for a time tracking desktop app in Tauri, build it, I will not be reachable",
+    "build the members app and its API from this brief, list your decisions in the README"
   ],
   "should_not_trigger": [
     "make the settings page look less generic",

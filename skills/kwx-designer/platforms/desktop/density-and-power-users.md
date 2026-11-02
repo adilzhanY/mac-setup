@@ -86,7 +86,8 @@ KDE's principle: simple by default, powerful when needed.
 - Left align text, right align numbers, use tabular numerals, align decimal points.
 - Sticky header row and sticky first column for wide tables.
 - Sort by clicking the header (indicator shows direction); resize columns by dragging the divider (resize cursor), double click the divider to fit content.
-- Truncate long cells with an ellipsis and show the full value on hover tooltip and in the detail view. Never wrap rows unpredictably in dense tables.
+- Truncate long cells with an ellipsis and show the full value on hover tooltip and in the detail view, only for user data; identifiers (IDs, invoice numbers, dates, amounts) stay nowrap. Never wrap rows unpredictably in dense tables.
+- A list of records shows the derived value the user tracks next to the raw one (hours and euros, days overdue as a number), and the week header shows totals. Full rules in `patterns/data-dense-tools.md` sections 2 and 6.
 - Zebra striping only for wide tables with many columns; otherwise hover highlight plus row dividers.
 - Inline edit on double click or Return, commit on Return or blur, cancel on Esc.
 - Virtualize long lists so scrolling 10,000 rows stays at 60 fps.

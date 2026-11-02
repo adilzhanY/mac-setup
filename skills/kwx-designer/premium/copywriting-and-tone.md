@@ -145,6 +145,8 @@ Keep a living table of terms (WWDC22, WWDC25):
 
 - **Pick one case style per surface and never mix.** Apple and Vercel use Title Case for buttons and headings in product UI; Vercel uses sentence case on marketing pages. Many modern products use sentence case everywhere. Either is premium; mixing is not. (For this skill's own outputs: follow the platform. iOS and macOS: Title Case for buttons and alert titles. Web apps: sentence case unless the brand says otherwise.)
 - **Numerals for counts:** "3 files" (Vercel).
+- **Status copy carries the number.** "10 Tage überfällig", not "Überfällig"; "1 Platz frei", "6 Plätze frei", "Ausgebucht", "Warteliste Platz 2"; "Läuft seit 08:12". Pluralise with `Intl.PluralRules` or the i18n library, never "1 Rechnungen". Check: grep the status strings that could carry a count or a date; grep count interpolation without a plural helper.
+- **A field hint says where the text will appear** ("Erscheint im Tätigkeitsnachweis der Rechnung"), not "Optional".
 - **Currency:** 0 or 2 decimals, never both in one context (Vercel).
 - **Units:** a non breaking space between number and unit.
 - **Dates and numbers in the user's locale;** detect language from `Accept-Language` and `navigator.languages`, never from IP (Vercel).
@@ -197,6 +199,7 @@ Chimero, *The Shape of Design*: delight is the overlap of **empathy, surprise an
 - [ ] One term per concept; word list exists
 - [ ] One case style per surface
 - [ ] Numbers as numerals, locale formatting, plurals handled, non breaking spaces before units
+- [ ] Every status with a size says it (days overdue, places free, running since); no "Optional" as a field hint
 - [ ] Curly quotes and real ellipsis; no long dashes
 - [ ] Read aloud once
 

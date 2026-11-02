@@ -91,6 +91,7 @@ useEffect(() => {
 - Parse responses with a schema (validation-at-boundaries.md); a typed `fetch` wrapper that returns `T` without parsing is a cast.
 - Avoid waterfalls: a parent that fetches, renders a child that fetches, renders a grandchild that fetches. Fetch in parallel at the route level, or use RSC/loaders.
 - Mutations: send them from event handlers or form actions, then invalidate the affected queries. Optimistic UI with `useOptimistic` or the cache library's API, always with rollback on failure.
+- JS timers cap at 2147483647 ms (2^31 - 1, 24.8 days); a larger `setTimeout` or `setInterval` delay overflows and fires at once. TanStack Query's `gcTime` is such a timer. For an offline cache that must live longer, set `gcTime: Infinity` and put the lifetime on the persister (`maxAge` in `persistQueryClient` or `PersistQueryClientProvider`). (Trial 2026-11-01: android-A set `gcTime` to 30 days; the build without skills caught it.)
 
 ## 6. Memoization and the React Compiler
 
@@ -139,6 +140,8 @@ export function useCart(): CartStore {
 }
 ```
 
+- Preferences a signed out user needs (language, theme, text size) live in a provider above the auth gate, are stored on the device, are read before the first screen renders, and can be changed from the sign in and sign up screens. Sync them to the account after login only if needed. The developer side wires the provider and the setter; kwx-designer places the control. (Trial 2026-11-01: android-A's language switch existed only after login.)
+
 ## 11. Errors and loading
 
 - Error boundaries around independent regions (a widget failing must not blank the page). They catch render errors only; handle event and async errors in the handler.
@@ -167,6 +170,7 @@ Platform and correctness:
 - Never ship API secrets in the bundle: anything in JS is extractable from the app. Call your backend.
 - Handle app state changes (background/foreground) for timers, sockets and polling (`AppState`).
 - Native modules: on 0.82+ only New Architecture (TurboModules/Fabric) libraries work. Check a library's support before adding it.
+- A requirement that lives only in the client (offline schedule, QR without network, actions disabled offline) gets a component test with the feature (`reliability/testing-strategy.md` section 9).
 
 ## 13. Checks
 
@@ -181,4 +185,6 @@ Platform and correctness:
 - **RN: no console in release.** Pass: the remove-console plugin is configured for production. Verify: `rg -n 'transform-remove-console' babel.config.* .babelrc* 2>/dev/null` or equivalent bundler setting.
 - **RN: no ScrollView lists.** Pass: no `ScrollView` wrapping `.map(`. Verify: `rg -nU -A5 '<ScrollView' -g '*.tsx' . | rg '\.map\('`
 - **RN: no tokens in AsyncStorage.** Pass: zero. Verify: `rg -n 'AsyncStorage\.setItem\(.*(token|secret|password|key)' -i -g '*.{ts,tsx}' .`
+- **No timer over 24.8 days.** Pass: every `gcTime`, `cacheTime`, `setTimeout` and `setInterval` value is at most 2147483647 or `Infinity`. Verify: `rg -n "gcTime|cacheTime|setTimeout\(|setInterval\(" -g "*.{ts,tsx}"` and evaluate each value; a unit test asserts the query client config.
+- **Preferences above auth.** Pass: the language provider wraps the router root, not the signed in layout. Verify: `rg -n "LanguageProvider|I18nProvider"` shows the root layout; the sign in screen imports the setter.
 - **One client state library.** Pass: at most one of redux, zustand, jotai, mobx, recoil, valtio. Verify: `rg -o '"(@reduxjs/toolkit|redux|zustand|jotai|mobx|recoil|valtio)"' -g 'package.json' -g '!**/node_modules/**' . | sort | uniq -c`

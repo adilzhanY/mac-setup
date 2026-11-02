@@ -75,6 +75,8 @@ Premium is also about the icons you do not draw. Linear's 2026 refresh earned it
 - If you need more than five seconds to think of an icon for a concept, the concept needs a label, not an icon (NN/g).
 - Never rely on colour alone for meaning; pair it with shape.
 
+**No vague stand in.** If the set has no glyph whose picture clearly names the concept, draw one. Never a loosely related glyph, and never one glyph for two concepts (the user's shell once mapped both opacity and blur_on to Lucide "blend"). Draw it on the set's own grid and stroke (Lucide: 24 grid, 2 px round stroke, round caps and joins, 2 px inset, 2 to 3 px corner radii), as one simple object, and run `scripts/icon_check.py`. For the user's shell: save it as `~/.local/share/lucide/custom/iris-<name>.svg`, add `"iris_<name>": "iris-<name>"` to `aliases.json` and `manual-map.json`, rebuild (README in `~/.local/share/lucide`), install with `install -m644` (`delivery.md` section 8), use `MaterialSymbol { text: "iris_<name>" }`, and tell the user a restart is needed (Ctrl+Super+R, then `koima --daemon`). Check: list every icon with its concept; no two concepts share a glyph.
+
 ## 5. The workflow in nine steps
 
 1. **Read the project.** Find its existing icons, UI font, body size, corner radii and icon sizes. Check for a project spec file. If none, use the house spec in `construction-spec.md`, adjusted by its section 7.

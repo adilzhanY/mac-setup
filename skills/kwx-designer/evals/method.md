@@ -1,6 +1,6 @@
 # Eval method: proving the skill changes anything
 
-How to measure whether kwx-designer, or one rule in it, makes UI work better than the same agent without it. The skill has grown by adding text from videos and books, never by showing that the text moves a number. This method is adapted from the ponytail plugin's benchmark suite (585 agentic sessions per release, three arms, hidden checks, judges that prove themselves first). `evals.json` and `triggers.json` in this folder are the current seed: 3 graded prompts and a 10 plus 10 trigger set, with no baseline arm yet.
+How to measure whether kwx-designer, or one rule in it, makes UI work better than the same agent without it. The skill has grown by adding text from videos and books, never by showing that the text moves a number. This method is adapted from the ponytail plugin's benchmark suite (585 agentic sessions per release, three arms, hidden checks, judges that prove themselves first). `evals.json` in this folder has 14 graded cases (3 seed cases plus 11 from the 2026-10 trial) and `triggers.json` a 10 plus 10 trigger set.
 
 ## Contents
 
@@ -27,6 +27,7 @@ How to measure whether kwx-designer, or one rule in it, makes UI work better tha
 6. **Load the skill as it is really loaded:** copy it into the workspace `.claude/skills/kwx-designer` and check the transcript that the Skill tool fired. Pasting SKILL.md into the system prompt tests something else.
 7. **Same constraints for every arm:** no browser, no dev server, no screenshots (the user's rule), stated in one shared instruction so it is never an arm effect.
 8. Read one finished transcript per arm to prove what was injected where.
+9. **Paired no skill arm with the owner's preference.** The 2026-10 trial (same model, three apps, an arm with the kwx skills against one with none, both seeing the global CLAUDE.md) scored the skills arm higher on code read rubrics, but the owner preferred the no skills UI from screenshots. So every UI eval also runs a no skill arm under the same conditions, renders the same screens with the same seed data, and records the owner's pairwise preference between screenshots as the main outcome; code read scores are secondary. The trial baseline was not isolated from CLAUDE.md on purpose, because that is how the owner works; state which isolation a run used.
 
 ## 2. Tasks
 
@@ -45,13 +46,13 @@ How to measure whether kwx-designer, or one rule in it, makes UI work better tha
 - **The bad reference is lazy but plausible:** right on the happy path, wrong only on the corner the rule is about. A list that renders with data but has no empty or error branch; `window.confirm` where the app has a house dialog; a hex literal instead of a token; `outline: none` with no replacement.
 - **Demand evidence, not a mention.** The word "empty" in a comment is not an empty state; a rendered branch is.
 - **Guard against false passes:** a substring match (`351` inside `13510`), code outside a fence still scored, an exception reported as a pass, an unknown task skipped instead of failed.
-- **Static scorers** (no browser on this machine): the section 14 greps of the quality gate, a literal font size outside the scale, hex colours outside the token file, missing state branches; `scripts/contrast_check.py` on every colour pair; `scripts/icon_check.py` on new SVGs. Label them structural: "it compiles" is not quality.
+- **Static scorers** (no browser on this machine): the section 15 greps of the quality gate, a literal font size outside the scale, hex colours outside the token file, missing state branches; `scripts/contrast_check.py` on every colour pair; `scripts/icon_check.py` on new SVGs. Label them structural: "it compiles" is not quality.
 - **Never count accessibility markup, state branches or tests as bloat.** A size metric that punishes ARIA punishes the gate. Measure gzip size next to line count, so packing code into one line cannot game it.
 - **When the skill looks worse, suspect the scorer first.** Ponytail's "correctness drop" was the grader: it could not read unfenced code (41 of 74 failures) and tested a deliverable the prompt never asked for (31 of 74).
 
 ## 4. Planted defects: recall of the gate and the critique
 
-1. Take the entries of `~/.claude/ui-designer/mistakes.md` (each a real defect the user had to point out) and plant them in a finished screen: overflowing text, a clipped label, an icon too small for its disc, a control that vanishes on its background.
+1. Take the entries of the local library (`~/.claude/ui-designer/mistakes.md`) or, on another machine, `quality/mistakes-library.md` (each a real defect a user had to point out) and plant them in a finished screen: overflowing text, a clipped label, an icon too small for its disc, a control that vanishes on its background.
 2. Add generic ones: the focus ring removed, the error branch dropped, a contrast pair lowered, an emoji icon, a hard coded size.
 3. Plant at least one in a screen the change did not touch but which imports a changed component.
 4. Run the quality gate or a critique and count catches. Report recall for planted defects and separately for defects outside the diff (ponytail's review: 100% against 87% without, and 100% against 78% outside the diff).
@@ -62,6 +63,7 @@ How to measure whether kwx-designer, or one rule in it, makes UI work better tha
 - Pair every "less" metric with a completeness score (0 stub, 1 partial, 2 one requirement missing, 3 full). A screen that is smaller because it dropped the feature is caught, not rewarded.
 - Report quality next to any saving, so efficiency cannot hide a regression. Ponytail printed hidden checks (97% against 96%) beside its 53% fewer lines.
 - Report cost per pass (all spend over the cells that passed every gate), not only cost per run.
+- Report output tokens per arm next to quality. In the 2026-10 trial the skills arm used 2.2 to 3.2 times the output tokens of the no skills arm, most of it on gate write ups; 1.1.0 cut the write up to criticals and FAILs.
 
 ## 6. LLM judges
 
@@ -102,7 +104,7 @@ How to measure whether kwx-designer, or one rule in it, makes UI work better tha
 
 Nothing below is built yet. In order:
 
-1. Self tested static scorers for the section 14 greps, literal sizes, token use and state branches, each with a good and a bad reference.
+1. Self tested static scorers for the section 15 greps, literal sizes, token use and state branches, each with a good and a bad reference.
 2. Behaviour probes: one prompt per critical rule in SKILL.md where only that rule changes the outcome; the baseline should mostly fail.
 3. The planted defect set from the mistakes library (section 4).
 4. Arms baseline, kwx and short prompt, isolated as in section 1, 5 runs per cell.

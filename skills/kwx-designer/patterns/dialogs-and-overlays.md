@@ -9,7 +9,9 @@ The mechanics of modal dialogs on the web: which element, how it is named, every
 3. Every way it closes
 4. Light dismiss
 5. Focus
-6. Checks
+6. Every overlay names its off condition
+7. Nested surfaces
+8. Checks
 
 ---
 
@@ -56,7 +58,26 @@ Every dialog has an accessible name: `aria-labelledby` pointing at its heading, 
 - **Inert, not trapped.** The page behind is inert, but Tab can still leave the dialog to the browser's own interface (the address bar). That is expected; do not fight it with a script trap. (Observed behaviour reported by the ponytail examples; MDN states only the inertness.)
 - **Focus return.** The HTML standard returns focus to the element that was focused before `showModal()` when the dialog closes; older browser versions did not. Not verified per browser version here. When older browsers matter, store `document.activeElement` before opening and focus it in the `close` handler.
 
-## 6. Checks
+## 6. Every overlay names its off condition
+
+Every tooltip, popover, toast and hover card has a hide condition you can name in one line: pointer left, focus moved, Escape, a timeout, the parent closed (KM9: a tooltip in a parent with no hover state stayed on screen for good).
+
+- A web tooltip opened on `mouseenter` also needs `mouseleave`, `blur` and Escape.
+- A React Native tooltip whose state is set to true must have a path that sets it false.
+- A QML StyledToolTip under a parent with no `hovered` property binds `extraVisibleCondition`.
+
+Check: for each overlay, write its show condition and its hide condition side by side.
+
+## 7. Nested surfaces
+
+- Esc leaves the current sub page first and closes the surface only from its top level.
+- A right click on an item opens its detail inside the same surface.
+- Popups close on Esc, an outside click or their own timeout, never by an accidental hover.
+- Exception: a transient indicator (a volume OSD) hides at once on hover, so it never blocks a click.
+
+Check: with a sub page open, the Esc handler calls back(), not close().
+
+## 8. Checks
 
 | Check | Pass when | Verify in code |
 |---|---|---|
@@ -65,3 +86,5 @@ Every dialog has an accessible name: `aria-labelledby` pointing at its heading, 
 | One close path | Escape, Cancel and the backdrop all reach one `close` handler | Find the `close` listener; `returnValue` reset before opening |
 | Light dismiss decided | On for harmless panels, off for destructive confirms and typed input | Read `closedby` and any backdrop click handler |
 | Safe focus | Cancel has `autofocus` on destructive confirms; focus returns to the trigger | Read `autofocus` and the close handler |
+| Off condition | Every overlay has a named hide condition | The show and hide list per overlay |
+| Esc steps back | Esc on a sub page goes back one level | Read the Esc handler |

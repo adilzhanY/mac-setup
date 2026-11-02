@@ -69,8 +69,8 @@ From all three channels:
 
 - One font family; hierarchy by size, weight, colour, line height.
 - One primary colour with a ramp; colour for purpose, not decoration; in dashboards colour comes from the data.
-- One accent fill per view; header actions neutral.
-- One primary per screen: the strawberry title, badge and CTA were all shouting. "A product title should stand out without shouting." The CTA is "the most important action, not the loudest element".
+- One filled primary per area; other header actions quiet (the site header CTA stays filled, SKILL.md rule 2).
+- One primary per area: the strawberry title, badge and CTA were all shouting. "A product title should stand out without shouting." The CTA is "the most important action, not the loudest element".
 - Muted over neon: olive instead of #00FF00 like green.
 - Quiet shadows: "If the shadow is the first thing you notice on a design, you're not using it right."
 - Thin light dividers or none.
@@ -114,7 +114,7 @@ From all three channels:
 | 6 | Hour of use | The list of "stops feeling like the same product" spots is empty |
 | 7 | Broken on purpose | Offline, failed payment, empty lists are designed |
 | 8 | Recovery | Errors give cause, next step, a human path, reason specific copy |
-| 9 | Restraint | One font, one accent fill, one primary, colour with meaning, quiet shadows |
+| 9 | Restraint | One font, one filled primary per area, colour with meaning, quiet shadows |
 | 10 | Felt details | One margin system, tuned headlines, icons at line height, readable overlays |
 | 11 | Presentation | Product visuals, not icon tiles, where trust is formed |
 | 12 | Easier task | At least one improvement beyond fixing (presets, sticky action, total in button) |

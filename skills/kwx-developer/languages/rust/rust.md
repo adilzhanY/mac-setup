@@ -47,6 +47,7 @@ Each rule names the topic file that owns it.
 | `testing.md` | unit and integration layout, test helpers, insta, proptest, doc tests, nextest, fuzzing, benchmarks | writing or organising tests, fixing a bug (write the failing test first) |
 | `tooling-and-lints.md` | the recommended `[lints]` block, `clippy.toml`, `rustfmt`, `deny.toml`, CI commands, profiles, features, MSRV, workspaces | setting up a crate or workspace, CI, adding a dependency, a feature or a lint |
 | `unsafe-and-ffi.md` | when unsafe is acceptable, SAFETY comments, module containment, Miri, 2024 edition unsafe changes, FFI boundaries | any `unsafe`, `extern`, raw pointer, `transmute`, `static mut`, C interop |
+| `tauri.md` | Tauri 2 commands, the IPC contract test, file dialogs in Rust, capabilities, data and portable build notes (`languages/rust/tauri.md`) | any Tauri desktop app |
 | `audit.md` | commands that find inconsistency and structural problems in an existing Rust codebase | asked to review, audit or clean up a Rust project, or before a large refactor |
 
 ## 3. Defaults when the user did not say

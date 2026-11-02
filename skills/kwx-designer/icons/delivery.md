@@ -186,7 +186,7 @@ VectorDrawable keeps strokes natively, so the stroke master converts directly. I
 
 Two routes, both used on this machine.
 
-**An icon font (the user's shell).** `~/.local/share/lucide/build-font.py` builds Lucide plus the custom `custom/iris-*.svg` glyphs into `LucideShell-Regular.otf` (2.0 px) and `LucideShell-Bold.otf` (2.5 px, for selected or filled icons). QML asks for a glyph by name: `MaterialSymbol { text: "iris_deck" }`. To add one: draw it to spec, run `icon_check.py` on it, save it as `custom/iris-<name>.svg`, add `"iris_<name>": "iris-<name>"` to `aliases.json` and `manual-map.json`, rebuild and install with `install` (never `cp` over an open font), and restart the shell (Ctrl+Super+R). Sizes come from the shell's font tokens (`Appearance.font.pixelSize.*`), never a literal number. Trade-off: one colour per glyph, no per part animation.
+**An icon font (the user's shell).** `~/.local/share/lucide/build-font.py` builds Lucide plus the custom `custom/iris-*.svg` glyphs into `LucideShell-Regular.otf` (2.0 px) and `LucideShell-Bold.otf` (2.5 px, for selected or filled icons). QML asks for a glyph by name: `MaterialSymbol { text: "iris_deck" }`. To add one: draw it to spec, run `icon_check.py` on it, save it as `custom/iris-<name>.svg`, add `"iris_<name>": "iris-<name>"` to `aliases.json` and `manual-map.json`, rebuild and install with `install -m644`, and restart the shell (Ctrl+Super+R). Never `cp` a rebuilt font over the installed one: a running process with the font open keeps its old name tables and reads the new outlines, so every icon shows a neighbouring glyph (a hand for Shut down; KM5). `install -m644` unlinks and recreates the file, so running apps keep the old one until they restart. Sizes come from the shell's font tokens (`Appearance.font.pixelSize.*`), never a literal number. Trade-off: one colour per glyph, no per part animation.
 
 **SVG through `Image`.** Set `sourceSize` so Qt rasterises at the display size instead of scaling a bitmap:
 
@@ -210,3 +210,4 @@ Image {
 - [ ] Touch targets are at least 44 pt or 48 dp, whatever the glyph size.
 - [ ] Icons recolour with the theme on light and dark, and the selected twin is wired to the selected state.
 - [ ] No icon font on the open web unless its variable axes are animated.
+- [ ] A rebuilt font is installed as a new file (`install -m644`), never copied over a loaded one, and the app restarted. On the web, rebuilt fonts and icon sprites get a content hash in the file name. Check: `grep -nE "cp .*fonts|cp .*\.(otf|ttf|woff2?)"` over the commands you ran or wrote is empty (KM5).

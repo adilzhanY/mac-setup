@@ -195,6 +195,7 @@ Any `DROP`, `TRUNCATE`, `DELETE` without a narrow WHERE, bulk `UPDATE`, data mig
 - Build it as a background job that writes a zip (one JSON or CSV per entity, plus their uploaded files), stores it with a short lived signed URL, and emails or notifies the user. Do not build it synchronously in a request.
 - Use the same queries the app uses for authorization (by `user_id` / tenant). Test that the export of user A contains nothing of user B.
 - Include stable ids and ISO 8601 UTC timestamps so the export can be re-imported. A local first app should offer import of its own export format; that is its longevity guarantee.
+- **Exports for people.** A CSV or spreadsheet read by people (an admin's waitlist export, a monthly report) shows the same human labels as the UI ("Design and illustration", not "design"), in the admin's language, with machine codes in an extra column only if a downstream tool needs them. For German Excel use semicolons, a UTF-8 BOM and CRLF; neutralise cells starting with `=`, `+`, `-`, `@` or tab (prefix a `'`). A test asserts one row's label text. (Trial 2026-11-01: web-A exported profession codes.)
 
 ## 14. Checks
 
@@ -210,4 +211,5 @@ Any `DROP`, `TRUNCATE`, `DELETE` without a narrow WHERE, bulk `UPDATE`, data mig
 | Backups encrypted | ciphertext in the bucket | `head -c 32 file` shows the age header `age-encryption.org/v1`, not `PGDMP` or `SQLite format 3` |
 | Storage files covered | bucket versioning on | `aws s3api get-bucket-versioning --bucket ...` returns `Enabled` |
 | User export exists | endpoint or job present, tested for isolation | `grep -rniE "export" src/` plus a test with two users |
+| Export labels | the CSV test asserts a label from the dictionary, not the code | read the export test |
 | Runbook | written restore steps with measured RTO | `docs/runbooks/restore.md` exists and has a date from the last drill |

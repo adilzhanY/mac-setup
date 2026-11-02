@@ -85,7 +85,9 @@ Layout options:
 Hero rules:
 
 - The hero text is in the HTML and visible without JavaScript; no entrance animation on the headline (it becomes the LCP element). Animate the device or the notifications around it instead, and only under `prefers-reduced-motion: no-preference`.
-- One primary action. A secondary action, if any, is a text link ("See how it works", scrolling to features).
+- One primary action. A secondary action, if any ("See how it works", scrolling to features), is an outlined or ghost button, never an underlined text link, on every width.
+- The header CTA is the filled primary style and the same action as the hero CTA. It stays filled even though the hero repeats it.
+- **The hero visual shows the result the visitor gets**, drawn as a card in the site's own components with realistic data (sorted receipts with category chips and amounts, this month's tax reserve), not the raw input (a lone paper receipt is decoration). It fills its column (at least 40% of the container and 420 px wide on desktop, full width on phones) and is at least as tall as the headline plus subhead, with no empty band below it at 1440.
 - The hero background stays calm: a soft gradient, a tinted neutral, or a single brand colour field. No busy photo behind text.
 
 ## 5. Copy rules
@@ -117,6 +119,8 @@ Hero rules:
 - One accent colour for the whole page, used on CTAs and highlights. Backgrounds alternate between 2 neutral surfaces at most, plus one dark or brand-coloured band for emphasis.
 - Illustrations, icons and screenshots share one style (radius, stroke, shadow).
 
+**Section rhythm.** Default unless the brand's system says otherwise: one shared PageHeader band on subpages (a tinted neutral background, the title, a one line subhead), alternating section backgrounds so the rhythm needs no hairlines, and a brand coloured closing band with white text and a white button.
+
 ## 8. Mobile specifics
 
 Most visitors to a mobile app landing page are on a phone, often from a social link.
@@ -125,6 +129,7 @@ Most visitors to a mobile app landing page are on a phone, often from a social l
 - On iOS, the Smart App Banner (`apple-itunes-app` meta) already offers "Get"; keep the in-page badges anyway.
 - Detect the platform to emphasise the matching store badge, but never hide the other store completely (people share links across platforms).
 - Hide the QR code on phones.
+- Below 640 px hero and closing CTAs stack: the primary filled and full width, 48 to 56 px tall, the secondary below it as a full width outlined button. On every width the secondary CTA is a button, never an underlined text link.
 - A sticky bottom install bar is acceptable on mobile only if it is small (56 to 64 px), dismissible, does not cover content or the cookie banner, and is not combined with the Smart App Banner.
 - In-app browsers (Instagram, TikTok) cannot always open the App Store directly: test the badge links there.
 
@@ -160,7 +165,7 @@ Products with no screen worth showing (CLIs, agents, APIs, plugins) sell on a me
 - Full-screen video or carousel hero with the message hidden in slide 3. Carousels hide content and slides beyond the first are rarely seen.
 - Store badges with hover scale, rotation, glow, a custom colour, or a "Coming soon" overlay.
 - Stock photos of smiling people holding generic phones.
-- Screenshots too small to read, or mockups showing fake UI that the app does not have.
+- Screenshots too small to read, or mockups that promise features the product does not have.
 - Fake urgency (countdown timers that reset), fake scarcity, fake reviews, made-up user counts.
 - Cookie banners that cover the CTA; chat widgets on a consumer app page.
 - Ten feature sections of equal weight; every section with the same layout.
@@ -178,3 +183,7 @@ Products with no screen worth showing (CLIs, agents, APIs, plugins) sell on a me
 - [ ] Footer: privacy, terms, imprint if needed, support email, Apple and Google trademark lines.
 - [ ] Hero renders without JavaScript; LCP under 2.5 s on a mid-range phone (see `performance-and-loading.md`).
 - [ ] One accent colour; consistent screenshot style; no em dashes or emoji in copy if the project forbids them.
+- [ ] The hero visual shows the outcome in the site's own components with realistic data, fills its column and leaves no empty band at 1440.
+- [ ] The header CTA is filled and is the same action as the hero CTA.
+- [ ] Below 640 px the CTAs stack full width; the secondary CTA is a button on every width.
+- [ ] Subpages share one page header component; section rhythm needs no hairlines.

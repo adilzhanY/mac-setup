@@ -45,6 +45,7 @@ function allocate(total: bigint, parts: number): bigint[] {
 
 - Percentages and rates stored as decimals in strings or basis points (integer, 1 bp = 0.01 %), not floats.
 - If the repo uses a money library (dinero.js, currency.js, a `Money` class), use it everywhere; mixing a library in one module with raw numbers in another is a finding.
+- One pricing function for every output of the same amount. Screen totals, CSV, PDF, invoice lines and reports call the same function with the same rounding step (for example: seconds per project rounded once to minutes, priced half away from zero, VAT on the net total). Never price exact seconds in one export and rounded minutes in another. Test: build the CSV and the invoice for the same entries and assert CSV net sum equals invoice net. Rust: one `price()` in the domain module. (Trial 2026-11-01: desktop-A's export priced exact seconds while its invoices priced rounded minutes; desktop-B's invoice disagreed with its own overview.)
 
 ## 3. Money: storage, wire format, display
 
@@ -94,6 +95,7 @@ Rules that follow:
 - Time zones are IANA names (`Europe/Berlin`), never fixed offsets (`+01:00`) or abbreviations (`CET`, `EST`), which do not encode DST.
 - "Add one day" to a moment in a zone is not "add 24 hours": a DST day has 23 or 25 hours. Do calendar math in `ZonedDateTime` or `PlainDate`.
 - Durations in months are calendar-dependent (Jan 31 plus 1 month). Define what the product means and test month ends.
+- A duration of 0 (start equals stop, a timer stopped in the same second) or below the billing step is a product rule, decided and tested: discard it (recommended for timers: under 60 s is dropped with a notice) or refuse it for manual entries. It never reaches an invoice as a 0:00 line. Record the rule in Decisions and test start == stop.
 
 ## 5. Time: `Date` pitfalls
 
@@ -134,6 +136,7 @@ meeting.add({ hours: 24 }); // 2026-03-29T10:00, because clocks jump forward tha
 - JSON: ISO 8601 / RFC 3339 strings with an offset or `Z` for instants (`"2026-10-30T14:05:00Z"`), `"YYYY-MM-DD"` for dates, IANA zone in a separate field when needed. Not epoch numbers without a unit in the field name; if you use epoch, name it `createdAtMs`.
 - Validate on input: `z.iso.datetime({ offset: true })`, `z.iso.date()`.
 - Display with `Intl.DateTimeFormat` (or `toLocaleString`) and an explicit `timeZone` when the zone is not the viewer's: `new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: event.zone })`. Relative times with `Intl.RelativeTimeFormat`. Cache formatters like number formatters.
+- Times that belong to a place (a gym's courses, opening hours, an event, a Berlin invoice date) are formatted with `timeZone: PLACE_ZONE` (one exported constant, for example `export const GYM_ZONE = "Europe/Berlin"`) in every `Intl.DateTimeFormat`, `toLocaleTimeString` and `toLocaleDateString` call, and day grouping (Today, Tomorrow, week start) is computed in that zone too. The device zone is only for things that belong to the viewer. (Trial 2026-11-01: android-A formatted course times in the phone's zone.)
 - Server rendering: the server's zone is not the user's. Rendering local times on the server causes hydration mismatches and wrong times. Render instants in the user's saved zone, or on the client.
 - Servers run in UTC (`TZ=UTC`); never depend on the host zone.
 
@@ -143,7 +146,7 @@ meeting.add({ hours: 24 }); // 2026-03-29T10:00, because clocks jump forward tha
 - When injection is impractical, use the test runner's fake timers (`vi.useFakeTimers(); vi.setSystemTime(new Date("2026-03-29T00:30:00Z"))`), and restore them after each test.
 - Always test: a DST transition day in a zone with DST, month ends (Jan 31 plus 1 month), Feb 29, year boundary, a zone west of UTC (`America/Los_Angeles`) and one east (`Asia/Tokyo`), and midnight UTC vs local midnight.
 - Money tests: allocation sums to the total, rounding mode at .5 boundaries, zero-decimal and three-decimal currencies, negative amounts (refunds).
-- Run the test suite with `TZ=America/Los_Angeles` once in CI to flush out hidden local-zone assumptions.
+- Run the suite under two zones in CI or the gate, one far east and one west: `TZ=Pacific/Auckland` and `TZ=America/Los_Angeles`. A hidden device zone assumption fails one of them.
 
 ## 9. Checks
 
@@ -156,4 +159,7 @@ meeting.add({ hours: 24 }); // 2026-03-29T10:00, because clocks jump forward tha
 - **IANA zones, not offsets.** Pass: no hardcoded `+01:00`-style zones or `EST`/`CET` used as zones. Verify: `rg -n "timeZone:\s*['\"](EST|PST|CET|CEST|GMT[+-])" -t ts .`
 - **Clock injected in domain logic.** Pass: no `Date.now()`/`new Date()` inside domain/service modules. Verify: `rg -n 'Date\.now\(\)|new Date\(\)' -t ts src/domain src/services 2>/dev/null`
 - **Timestamps stored with zone.** Pass: Postgres instants are `timestamptz`. Verify: `rg -n -i 'timestamp(?! ?with time zone)(?!tz)' -P -g '*.sql' .`
+- **Place zone explicit.** Pass: no date formatting call without `timeZone` in client code. Verify: `rg -n "DateTimeFormat\(|toLocale(Date|Time)?String\(" -g "*.{ts,tsx}" | rg -v timeZone` (the same pattern as gate section 12) shows only number formatting calls, read by hand, and the client tests pass under `TZ=Pacific/Auckland`.
+- **One pricing function.** Pass: one definition used by overview, export and invoice. Verify: `rg -n "fn price|function price"`; the CSV equals invoice test exists.
+- **Zero duration rule.** Pass: a start == stop test exists. Verify: `rg -n "start.*==.*stop|zero duration|0 seconds" -g "*.test.*" -g "*.rs" .`
 - **Tests cover DST and month ends.** Pass: at least one test per date utility uses a DST date. Verify: `rg -n '03-29|03-08|10-25|11-01|-01-31|02-29' -g '*.test.*' .`

@@ -24,5 +24,109 @@
       "Ink stays inside the live area",
       "scripts/icon_check.py was run and its output read"
     ]
+  },
+  {
+    "prompt": "Build the overview screen of a desktop time tracking and invoicing app for a German freelancer who replaces a spreadsheet.",
+    "assertions": [
+      "Period tiles show hours and euros side by side (trial: stundenwerk showed hours without money)",
+      "The week view has previous, next and a reset to the current week, with a label naming the KW and the dates (trial: no period navigation)",
+      "The entries table has a rate column and ends with a bold total row",
+      "Open and overdue invoices show amount plus count; overdue is in the danger tone with the days overdue as a number",
+      "The stop timer button is neutral or primary, not red (trial: a red Stop on every screen)"
+    ]
+  },
+  {
+    "prompt": "Build the new time entry dialog of the same app.",
+    "assertions": [
+      "The dialog opens with date today, end now rounded to 5 minutes, start from the last duration, and the last used project preselected",
+      "The duration field accepts 1:30, 1,5 and 90m and the hint names them (trial: hidden parsing)",
+      "The parsed date is echoed under the date field",
+      "No placeholder looks like a value (trial: a grey 09:00 in an empty field)",
+      "A parser test exists per accepted format",
+      "The timer bar warns about a forgotten timer after 10 h, with the start time and a fix action"
+    ]
+  },
+  {
+    "prompt": "Build the course schedule screen of a climbing gym member app (Expo).",
+    "assertions": [
+      "Availability is a chip in a success, warning or danger tone with the number of places (trial: places in grey caption text)",
+      "Each course has a course type colour marker with its name",
+      "Filter rows are labelled, the selected chip is brand filled with a check, and each row starts with one Alle",
+      "A week switch (this week, next week) sits at the top",
+      "The offline banner is the first element of the content, on the inverse surface, with the data time"
+    ]
+  },
+  {
+    "prompt": "Build the hero of a fintech waitlist landing page in Next.js.",
+    "assertions": [
+      "The header CTA is filled and is the same action as the hero CTA (trial: an outlined header CTA)",
+      "Below 640px the CTAs stack full width and the secondary CTA is a button, not a text link",
+      "The hero visual shows the outcome in the site's own components with realistic data and fills its column (trial: a lone paper receipt)",
+      "The h1 weight is 700 or more (trial: 600 headings read washed out)"
+    ]
+  },
+  {
+    "prompt": "Build a pricing page with 3 plans and a feature comparison. Graded at 390px.",
+    "assertions": [
+      "No sideways page scroll at 390px: scrollWidth <= innerWidth (trial: a min-width comparison table)",
+      "The comparison renders as one card per plan, recommended plan first, below 640px"
+    ]
+  },
+  {
+    "prompt": "Build a 4 tab Expo app shell with German labels.",
+    "assertions": [
+      "The tab bar height is computed from the icon, the label line height at the largest font scale, padding and the bottom inset (trial: clipped labels with the library default height)",
+      "Every label fits its slot at the largest font scale, with the arithmetic shown",
+      "Auth guard screens are direct Stack.Screens of the guarded stack (KM18)",
+      "No test or helper file lives under src/app"
+    ]
+  },
+  {
+    "prompt": "Build a tax estimate result card for a freelancer calculator.",
+    "assertions": [
+      "The caveat sits inside the card, directly under the figure, before the CTA in DOM order (trial: the caveat below the button)",
+      "The parts shown add up to the total shown at the same precision, with a test asserting it"
+    ]
+  },
+  {
+    "prompt": "Review this screen and fix what is wrong. (Planted defects, React and QML variants of one seeded screen: a 56 px ring with a 5 px stroke showing '100%' at 17.6 px bold; an 84 px disc with a 27 px icon; a settings label needing 200 px with 190 px left; a #050506 pill on #000000; a hover revealed one click Forget; a growing bubble whose text is visible during its size animation.)",
+    "assertions": [
+      "Finds KM1 with the arithmetic: inner space about 45 px against a text width of about 46 px",
+      "Finds KM2 with the ratio 27 / 92 = 0.29 against 0.40 to 0.55",
+      "Finds KM3 with 200 px needed against 190 px left",
+      "Finds KM4 with a channel difference of 5 to 6, or contrast_check.py --surface printing VANISHES",
+      "Finds KM7 and moves Forget behind a menu and a confirm",
+      "Finds KM10 and gates the text on the container's size",
+      "Every fix grows the box; no fix shrinks the text"
+    ]
+  },
+  {
+    "prompt": "In the Iris right panel Bluetooth device page, add a battery ring per earbud showing the charge percentage.",
+    "assertions": [
+      "The transcript reads house/owner-house-style.md, IRIS.md and ~/.claude/ui-designer/mistakes.md before writing code",
+      "Fonts come only from Appearance.font.pixelSize.*; every other size goes through UiScale.px",
+      "The ring is sized from '100%' with the arithmetic written out",
+      "No destructive control appears on hover",
+      "The report lists each mistakes library entry and what only the user's eyes can confirm",
+      "No pointer moves, window focus changes or screenshots appear in the transcript"
+    ]
+  },
+  {
+    "prompt": "Build the home screen of a climbing gym member app: occupancy right now, my next class, gym news.",
+    "assertions": [
+      "Occupancy is the largest text on the screen, 28 to 44px bold tabular (trial: every figure at body size)",
+      "Headings are 600 to 700 and body text is at least 16px",
+      "No other text is above 32px",
+      "No emoji or Unicode symbol icons",
+      "Loading, empty, error and offline states exist"
+    ]
+  },
+  {
+    "prompt": "Build a desktop sidebar 200 px wide with the entries Zeiten, Rechnungen, Kunden & Projekte and Einstellungen, each with a key hint (Strg 1 to Strg 4). (Fixture: a project mistakes.md with an M3 style entry about elided and wrapping labels.)",
+    "assertions": [
+      "The transcript reads the fixture mistakes library in full before writing",
+      "The report names the M3 style entry and shows the width arithmetic for 'Kunden & Projekte' against the space left after the icon and the key hint",
+      "The label wraps or the sidebar grows; the key hint never wraps (trial: 'Strg 4' broke onto two lines)"
+    ]
   }
 ]

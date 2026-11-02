@@ -2,10 +2,13 @@
 
 How to build or change UI code with the least new code that fully does the job. Lean applies to the solution, never to the work: read everything the change touches, finish every caller, keep every state. The result is small because each part is necessary, not because lines were golfed ("the rule was never fewest tokens", ponytail README).
 
+Lean is about code: no wrapper, prop, variant, dependency or abstraction nobody uses. It is never about what the user can do or see.
+
 Distilled from the ponytail Claude Code plugin (5.1.0) and its benchmarks, translated to interface work. Numbers quoted below are ponytail's own measurements.
 
 ## Contents
 
+0. Size the job
 1. Read before you build
 2. The reach order
 3. When a dependency is right
@@ -20,6 +23,16 @@ Distilled from the ponytail Claude Code plugin (5.1.0) and its benchmarks, trans
 
 ---
 
+## 0. Size the job
+
+Size the job first, because the reading list and the write up scale with it. The gate rows never do.
+
+- **Tiny** (one component or one defect): read the local mistakes library, `quality/mistakes-library.md`, `house/owner-house-style.md` when working for this user, and the files you touch. Run every gate row; write up only the `[critical]` rows and the FAILs.
+- **One screen:** all of the above, plus the daily use block (`patterns/daily-use.md`: the screen's daily questions and moves) and the full states list.
+- **New product:** the full process of `workflow/design-process.md`, with 3 to 6 references.
+
+Skipping the mistakes library never happens. Skipping gate rows never happens (`quality/enforcement.md` rule 7); most rows come out N/A quickly on a tiny change.
+
 ## 1. Read before you build
 
 1. Read the request and the code it touches before choosing anything. The reach order in section 2 runs after understanding, not instead of it.
@@ -32,7 +45,7 @@ Distilled from the ponytail Claude Code plugin (5.1.0) and its benchmarks, trans
 
 Stop at the first rung that fully does the job:
 
-1. **Does it need to exist?** Skip options, variants and flexibility nobody asked for, and name each skipped thing in the reply's Skipped line (section 10).
+1. **Does it need to exist?** Skip options, variants, settings and configurability nobody asked for, and name them in the Skipped line (section 10). Information and daily workflows are not options: the figures and states the brief's user decides with (the amount next to the hours, the period total, the free places, the payment date field) and the moves a daily user needs (period navigation, totals, quick entry, undo, delete, logout, export) are scope even when the brief does not list them (`patterns/daily-use.md`).
 2. **Does the codebase have it?** The house component, hook, token or helper, used the way the surrounding code uses it. A house component beats a native element: when the app has a `ConfirmDialog`, a delete uses it, not `window.confirm` and not a fresh `<dialog>`.
 3. **Does the platform have it?** Web: `<dialog>` with `showModal()`, `<details>`, `<input type="date">`, `type="color"`, `type="file"`, `type="search"`, `IntersectionObserver`, `Intl.NumberFormat` and `DateTimeFormat`, `URLSearchParams`, `structuredClone`, `AbortController`, CSS `scroll-snap`, `:focus-visible`. QML: the project's component library first, then Qt Quick Controls.
 4. **Is it in an installed dependency?** Use it before adding another.
@@ -79,7 +92,7 @@ Operation: before deleting the old file, `grep -nE 'aria-|role=|disabled|error|e
 1. Find the shared source first: the component, token or style every affected screen takes it from. Grep every user of it.
 2. Fix the root cause once, there. A fix in one screen while the shared component stays broken is itself a defect, and a review finding.
 3. Check that every other user of that source still renders right after the fix.
-4. Write the defect into the project's mistakes library when it has one.
+4. Write the defect into the local mistakes library the day it is found (the project's, or ~/.claude/ui-designer/mistakes.md), in its format: Looked like, Cause with the numbers, Rule, Check. Create the file if the project has none. Do the same for a new class of defect you find in review. Then add a generalized KM entry to `quality/mistakes-library.md`, or say in the report it should be added.
 
 Why this is written as an operation: in ponytail's test the instruction "trace the flow end to end" fixed 0 of 3 runs, while "grep every caller of the function you touch and fix the shared function once" fixed 6 of 6.
 
@@ -113,19 +126,20 @@ A deliberate simplification with a known limit gets a comment in this exact form
 - The word is `kwx-defer`, never "shortcut". In this skill a shortcut is a keyboard shortcut (`editors/shortcuts-and-command-search.md`), so a grep for it finds keymaps. A repo that already uses another marker (ponytail writes `shortcut:`) keeps its own, and the harvest greps both.
 - Always write the comma and the upgrade trigger. A marker with no trigger rots: "later" means never.
 - A marker in a code comment is allowed. A placeholder shown to users ("TODO", "Coming soon", lorem ipsum) is always a fail.
-- The harvest commands are in `quality/quality-gate.md` section 14.
+- The harvest commands are in `quality/quality-gate.md` section 15.
 - In a review, a marker that names its limit is a decision, not a finding, unless the expected load already crosses that limit.
 
 ## 10. The reply
 
 - **One answer, not a menu.** No basic, advanced and hook versions, no "choose the version that fits your needs", no table of six approaches. Pick one and say why in one line.
-- **Vague request, smallest real version.** "Build me X" gets the smallest version that does the core job, built now, with the left out parts named. Ask only when a wrong guess would waste the work. When a requested element has no job, say so in one line before building it.
+- **Vague request, smallest complete version:** the core job with every daily question and move it implies, built now. The Skipped line names options and abstractions, never a daily workflow or information element. Ask only when a wrong guess would waste the work. When a requested element has no job, say so in one line before building it.
 - **End with two lines:** `Skipped: <X, Y>. Add when <trigger>.` and what was not checked plus any risk the user must know.
 - **Count the gain** when you replaced something: "1 dependency and 30 lines became 0 dependencies and 8 lines".
 - **Snippets run where pasted**, or say what they assume (imports, the markup they query, the handlers they call).
 - **No marketing in the reply:** no "Key benefits" table, no check mark feature lists, no emoji, no "Here's a complete..." opener. If the explanation is longer than the code, cut the explanation.
 - **No invented impact numbers.** The version you did not build was never written, so "saved 40% of the code" has no baseline.
 - **Do not narrate** the reach order or the checklist. Apply them.
+- **Live only when proven.** Never report "hot reloaded", "live" or "working" from a reload line you did not tie to your final edit. Note the log position, make the last write, confirm a new reload line after it with no errors (Vite hmr update, Next Compiled, Expo Fast Refresh, Quickshell Reloading configuration + Configuration Loaded). If none appears, rewrite the file with its own content (a bare touch did not reload Quickshell), then say a restart is needed. Without a log, say the change is on disk, not that it is live (KM15).
 - **Shorter is not verified.** Ponytail's own short rate limit answer did not run (the error handler was never registered), and its short countdown rebuilt its interval every second. Trace or run the code before calling it done.
 
 ## 11. Checks
@@ -139,5 +153,7 @@ A deliberate simplification with a known limit gets a comment in this exact form
 | Root cause | A reported defect is fixed in the shared source, not per screen | The fix lands in the component or token file |
 | Never cut | Validation, states, accessibility and calibration all still present | Diff for removed branches and attributes |
 | One check | Each new branch, parser, formatter or money calculation has a test or assert | Find the test next to it |
-| Markers | Every `kwx-defer:` has a limit and an upgrade trigger | Section 14 harvest of the quality gate |
+| Markers | Every `kwx-defer:` has a limit and an upgrade trigger | Section 15 harvest of the quality gate |
+| Skipped line | Names no daily workflow or information element | Read each skipped item against the brief's daily questions and moves |
+| Live claim | Tied to a reload line after the last write | The log line position noted before the last write, the new reload line after it |
 | Reply | One answer, Skipped line with a trigger, not checked line, no menu | Read the reply before sending |

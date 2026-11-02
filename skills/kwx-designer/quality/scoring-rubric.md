@@ -1,6 +1,8 @@
 # Scoring rubric
 
-Score every finished piece of UI from 0 to 5 on each dimension below, after running the quality gate. The score is a judgement backed by evidence: for each dimension write one line saying why it earned that level.
+Use this rubric only for critiques of someone else's UI or a redesign audit. A build ships on the gate line: no [critical] row fails, no open FAIL, the three J8 details named (quality-gate.md section 14). The rubric repeats gate sections A to K and was dropped from builds in 1.1.0 because it doubled cost without measuring what the user cares about.
+
+Score the UI under critique from 0 to 5 on each dimension below, after running the quality gate. The score is a judgement backed by evidence: for each dimension write one line saying why it earned that level.
 
 ## Contents
 
@@ -73,7 +75,7 @@ A 3 is "acceptable, nothing wrong a user would notice". A 4 is "a good product t
 | 0 | Neon, clashing, AI default palette |
 | 1 | Decorative colour everywhere, gradient text or buttons |
 | 2 | Calmer, but several accent fills and coloured borders without meaning |
-| 3 | One brand colour with a ramp, semantic colours only for meaning, one accent fill per view |
+| 3 | One brand colour with a ramp, semantic colours only for meaning, one filled primary per area |
 | 4 | Colour carried by data; neutrals tinted toward the brand; dark mode depth by lightness |
 | 5 | Blur test leaves only signals; palette is distinct and owned |
 

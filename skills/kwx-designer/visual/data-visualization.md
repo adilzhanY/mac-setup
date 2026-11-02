@@ -11,7 +11,8 @@ A chart is a sentence. Decide what it says, then remove everything that does not
 5. Labels, numbers and text
 6. Small charts on marketing pages
 7. Interaction
-8. Review checklist
+8. Numbers that must agree
+9. Review checklist
 
 ## 1. Pick the claim, then the chart
 
@@ -83,7 +84,15 @@ Landing pages use charts as illustrations of a promise ("Save 3 hours a week"). 
 - Keyboard: series and points reachable, or a data table alternative below the chart.
 - Provide a text summary for screen readers (`<figure>` with `<figcaption>`).
 
-## 8. Review checklist
+## 8. Numbers that must agree
+
+1. The parts on screen add up to the total on screen at the same precision. If a part shows cents, the total does. Round once, after summing.
+2. The same figure in two places has the same value and the same format (the week total in the list header and in the overview).
+3. Count words use plural rules (`Intl.PluralRules` or the i18n library).
+
+Check: one test asserts sum(displayed parts) == displayed total for a sample; grep count strings for a plural helper. Gate row K3 runs this.
+
+## 9. Review checklist
 
 - [ ] Title states the takeaway.
 - [ ] Bars start at 0; no dual axes; no 3D; no pie with more than 3 parts.
@@ -91,3 +100,4 @@ Landing pages use charts as illustrations of a promise ("Save 3 hours a week"). 
 - [ ] Direct labels where possible, tabular numbers, rounded values, units.
 - [ ] Source and date range stated.
 - [ ] Works in dark mode and greyscale; has a text alternative.
+- [ ] Shown parts add up to the shown total; the same figure has one value and format everywhere.

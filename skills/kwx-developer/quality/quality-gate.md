@@ -2,6 +2,8 @@
 
 Run this gate before you call any code change done: a feature, a bug fix, a refactor, a migration, a one line config change. It is permanent. It does not get skipped because the change is small, because the user is in a hurry, or because the tests are green. Green tests prove only what they test.
 
+Lean mode (`SKILL.md` rule 11, a small change): run section 12 and every [critical] row; other rows may be N/A with the reason "lean". C9 is never N/A when the change shows money, a date or a counter.
+
 Most rows are checked by a command; the rest by reading named code. Every row gets PASS, FAIL or N/A with its evidence (the command and its output, or file:line).
 
 ## Contents
@@ -18,7 +20,8 @@ Most rows are checked by a command; the rest by reading named code. Every row ge
 10. I. Honesty of the report
 11. Report format
 12. Fast checks (copy and run)
-13. Checks
+13. K. Brief and handover
+14. Checks
 
 ## 1. How to run the gate
 
@@ -29,6 +32,7 @@ Most rows are checked by a command; the rest by reading named code. Every row ge
 5. Fix every FAIL in the code (never by loosening a test or the check), then rerun the failed rows and section 12.
 6. Score with `quality/scoring-rubric.md`. Ship only at or above its minimum.
 7. Report in the format of section 11.
+8. A build from a brief also runs section 13 (K).
 
 An item marked **[critical]** blocks shipping on its own.
 
@@ -69,6 +73,8 @@ When the change includes UI files, kwx-designer's gate runs on them as well (`wo
 | C6 | Edge cases | Empty, one, many, maximum size, unicode, time zones, concurrent calls considered where they apply; each one that applies has a test or a reason | the acceptance list and the tests |
 | C7 | Tests are real | Tests assert outcomes (state, response, rows), not only that a mock was called; the database is real, not mocked | `rg -n "(vi\|jest)\.mock\(.*(db\|prisma\|pg\|drizzle)" <tests>` prints nothing |
 | C8 | Pre-existing failures proven | A failure you did not cause is shown failing on the base too, and reported, not fixed | `git stash; <cmd>; git stash pop` output |
+| C9 [critical] | Shown numbers proven | Every money amount, date and counter the UI shows has a spec test at its boundaries (rounding at the .5 step, for example 80 minutes at 64,13 EUR per hour is 85,51 EUR (85,5066 rounded half away from zero); future and backdated dates refused where the rules say so; a counter at 0), and every number that should change (remaining visits, free places, balance, unbilled hours, open invoices) has the event that changes it implemented and tested. Never N/A "lean" when the change shows a money amount, a date or a counter | the life cycle table (`ai-agents/before-you-code.md` section 8) and the list of shown values mapped to test names |
+| C10 | Same number everywhere | Screen totals, CSV, invoice and reports for the same entries come from one pricing function with one rounding step and agree | the pricing grep in section 12 shows one definition; a test asserts CSV net sum equals invoice net |
 
 ## 5. D. Errors
 
@@ -102,7 +108,7 @@ When the change includes UI files, kwx-designer's gate runs on them as well (`wo
 | F4 [critical] | No secrets in the diff | No key, token, password, cookie or `.env` file added; secrets come from the environment or a secret store | section 12 secret grep; `gitleaks git --staged --redact` when installed |
 | F5 | Nothing sensitive logged | No password, token, auth header, full card or personal data in logs | `rg -n -i '(log\|logger\|console)\.\w+\(.*(password\|token\|secret\|authorization)'` on the changed files |
 | F6 | Least privilege | New credentials, roles, RLS policies and CORS rules grant only what the feature needs | read the policy or config |
-| F7 | Abusable endpoints limited | Login, reset, sign up, send, export and LLM endpoints have a rate limit with the right key | read the route registration |
+| F7 [critical] | Abusable endpoints limited and probed | Every password check (member login, admin login, Basic auth) and every sign up, reset, send and export endpoint has a limit: every password check has a hard limit per client IP and a growing delay per account that never refuses the correct password (`backend/auth.md` section 6); sign up, reset, send and export endpoints have a limit per client IP and per target (the email or phone, since there is no account yet). The IP is read through the one helper (`backend/rate-limits-retries-timeouts.md` section 6). Probes, results pasted: (a) 10 wrong passwords for one account from IP A, then the right password from IP B succeeds (no lockout DoS); (b) after 30 wrong passwords from one IP across random emails the next attempt gets 429; (c) a forged `X-Forwarded-For` does not get a fresh bucket in the default config; (d) the admin password endpoint returns 429 after its limit. "Documented in the README as not done" passes only when the fix needs infrastructure the brief excludes, and then it is the first line of "Not finished" | the four probe outputs (curl or test names); a test for probe (a) |
 
 The full list and the five minute diff review are in `security/security.md`.
 
@@ -142,6 +148,8 @@ The full list and the five minute diff review are in `security/security.md`.
 
 ```text
 Quality gate: <feature or fix>
+Size: <small|medium|large>; subagents: <n, one line why each>
+Files read: <topic files opened before their code>
 Scope: <n> files changed, <n> new; callers checked: <n>; could break: <one line>
 A Understanding  6/6
 B Consistency    7/7 (B1: scan diff clean)
@@ -152,13 +160,16 @@ F Security       7/7
 G Performance    4/5 (G5 N/A)
 H API and client 7/7 (H1: comments.contract.test.ts)
 I Honesty        5/5
+K Brief/handover 4/4 (or N/A: not a brief build)
 Critical items: all pass
 Score (scoring-rubric.md): <per dimension>, ship: yes/no
+Tests by risk: money/dates <n>, auth/abuse <n>, data loss <n>, UI and client only <n>, other <n>
 Ran:
   pnpm tsc --noEmit -> 0 errors
   pnpm vitest run src/routes/comments.test.ts -> 9 passed
   pnpm test -> 412 passed
 Not checked: <list with reasons and how to check, or "none">
+Cost: <wall time>, <n> subagents, <output tokens when shown>
 ```
 
 ## 12. Fast checks (copy and run)
@@ -197,6 +208,12 @@ grep -E '\bfetch\(' "$A" | grep -v signal
 grep -E '^[^:]+\.rs:[0-9]+: .*(\.unwrap\(\)|\.expect\()' "$A" | grep -vE '(^|/)tests?/|_test\.rs:'
 # em and en dashes (B7)
 grep -P '[\x{2013}\x{2014}]' "$A"
+# date formatting without an explicit timeZone (C9); number formatting hits are leads to read
+grep -P '(DateTimeFormat\(|toLocale(Date|Time)?String\()(?!.*timeZone)' "$A"
+# pricing functions (C10): one definition in the whole repo
+rg -n "fn price|function price"
+# client IP headers, forwarded, read outside the one helper (F7)
+grep -P '(?i:x-forwarded-for|x-real-ip|cf-connecting-ip)' "$A"
 # tests changed (C2): every line needs a reason in the report
 git diff --stat "$BASE" -- '*test*' '*spec*' tests __tests__
 # dependencies added or changed (B4)
@@ -210,12 +227,32 @@ diff "${SCRATCH:-/tmp}/scan-before.txt" "${SCRATCH:-/tmp}/scan-after.txt"
 
 End the harvest with one count line in the report: `<N> leads read, <M> fixed, <K> kept with a reason`. A hit kept on purpose (a CLI's `println!`, the config module's env read) needs one clause of reason.
 
-## 13. Checks
+## 13. K. Brief and handover
+
+Runs when the task is a build from a brief or ends a project phase; N/A otherwise. Trial evidence: the skilled desktop build shipped a README with no Not finished list, no decisions, a /games path and fish syntax; the gate had no README row.
+
+| # | Check | Pass condition | Verify |
+|---|---|---|---|
+| K1 [critical] | Brief matrix and promises closed | Every brief item has a matrix row with status and proof (test name or command); no done row without proof; every promise of the product's own text has a code path or a Not finished line | read PLAN.md against the brief, item by item (`workflow/new-project-from-brief.md` sections 2 and 5) |
+| K2 [critical] | README complete | Headings for Run, Test, Build, Environment variables, Decisions, Open questions, Not finished exist and are filled; Not finished lists every partial or missing matrix row | the README block under this table prints nothing |
+| K3 [critical] | README portable | No absolute paths of the build machine, no user names, no operator shell dialect, no "on this machine" notes; machine tips use env vars in an optional Tips line | the README block under this table prints nothing |
+| K4 | Claims reproduced | Every test count, command and URL in the README was run in this session and matches | rerun the README's test commands and compare counts |
+
+README block for K2 and K3 (copy as written; the table cells cannot hold a raw pipe):
+
+```bash
+for h in Run Test Build Environment Decisions "Open questions" "Not finished"; do grep -qi "^#.*$h" README.md || echo MISSING $h; done
+grep -nE "/home/|/games/|/Users/|set -x |this machine" README.md
+```
+
+## 14. Checks
 
 | Check | Pass condition | How to verify |
 |---|---|---|
-| Every row marked | Each row of A to I is PASS, FAIL or N/A with evidence | read the gate notes |
-| No open critical | No [critical] row is FAIL | read the critical ids (A1, A3, A4, B1, B4, C1, C2, C3, D1, E1, E2, F1 to F4, H1, I1) in the notes |
+| Every row marked | Each row of A to I (and K for a build from a brief) is PASS, FAIL or N/A with evidence | read the gate notes |
+| No open critical | No [critical] row is FAIL | read the critical ids (A1, A3, A4, B1, B4, C1, C2, C3, C9, D1, E1, E2, F1 to F4, F7, H1, I1, and K1 to K3 for builds from a brief) in the notes |
+| Lean mode honest | rows marked N/A "lean" only on a small change, and C9 never "lean" when the change shows a money amount, a date or a counter | read the notes |
+| Brief build closed | section 13 rows marked with evidence | read the notes |
 | Fast checks run | Section 12 output is in the notes with the count line | read the notes |
 | Fixes were in code | No FAIL turned PASS by editing a test, a lint config or this gate | `git diff "$BASE" -- '*test*' eslint.config.* biome.json Cargo.toml` read for loosening |
 | UI gated too | Changes with UI files also ran kwx-designer's gate | the joint report |

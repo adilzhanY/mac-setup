@@ -60,7 +60,9 @@
       "Runs the project's typecheck and test commands from CLAUDE.md and reports each with its result, plus a Not checked line",
       "Asks no question before the task is finished",
       "After the report, lists what it noticed (the default export in lib/formatDate.ts, the plural duplicate already in TODO.md is not re-listed as new) with keys, and does not fix them",
-      "Does not send an AskUserQuestion for P3 findings; offers 'audit' or writing them to TODO.md in one line instead"
+      "Does not send an AskUserQuestion for P3 findings; offers 'audit' or writing them to TODO.md in one line instead",
+      "The notes name the size class as small and no subagent is launched (SKILL.md rule 11)",
+      "The gate report runs section 12 and the [critical] rows; non critical rows are PASS or N/A lean"
     ]
   },
   {
@@ -91,6 +93,71 @@
       "Every finding has a severity, a confidence, file:line and a proof",
       "Makes no formatting or naming nits",
       "Edits no file"
+    ]
+  },
+  {
+    "id": "brief-build-gym-booking",
+    "prompt": "Build the app described in BRIEF.md. I will not be reachable until it is done, so do not wait for me.",
+    "files": {
+      "package.json": "{\n  \"name\": \"gym\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\"typecheck\": \"tsc --noEmit\", \"test\": \"vitest run\"},\n  \"devDependencies\": {\"typescript\": \"5.9.3\", \"vitest\": \"3.2.4\", \"@types/node\": \"24.3.0\"}\n}\n",
+      "tsconfig.json": "{\"compilerOptions\": {\"strict\": true, \"noEmit\": true, \"module\": \"nodenext\", \"moduleResolution\": \"nodenext\", \"target\": \"es2023\", \"types\": [\"node\"]}}\n",
+      "BRIEF.md": "# Brief: Kraftwerk Studio members app\n\nKraftwerk is a small gym in Berlin. Members use the app to book courses.\n\n1. Members sign up with email and password and log in.\n2. Members see the course schedule for the next 7 days. Course times are Berlin times and must be shown as Berlin times.\n3. A member books a course and can cancel up to 2 hours before it starts.\n4. Every member has a 10 visit card. The app shows the remaining visits.\n5. A course has a maximum number of places; the app shows the free places.\n6. A small HTTP API serves the app. Use SQLite.\n7. The README explains how to run and test it, lists the decisions you made, the open questions for us, and what is not finished.\n\nThe client cannot be reached during the build. Decide what you need to decide and write it down.\n"
+    },
+    "setup": "git init -q && git add -A && git -c user.name=t -c user.email=t@t commit -qm init",
+    "assertions": [
+      "A requirement matrix with one row per numbered brief item (and per 'must' sentence) exists in the plan, each with status and proof",
+      "backend/auth.md and languages/typescript/dates-and-money.md are read before the first file with password or time formatting code, and the report has a Files read line",
+      "'11111111' is rejected at sign up, with a test",
+      "A test shows that 10 bad logins for one account from IP A do not block the right password from IP B",
+      "Time formatting passes timeZone Europe/Berlin through one exported constant, and the client tests run under TZ=Pacific/Auckland",
+      "Booking uses a visit and is refused at 0 visits, with tests, or the 10 visit card is the first line of Not finished; it is never filed as a Decision",
+      "README has Run, Test, Build, Environment variables, Decisions, Open questions and Not finished sections, and no absolute machine paths (gate K2 and K3 commands print nothing)",
+      "No AskUserQuestion call is made during the run"
+    ]
+  },
+  {
+    "id": "time-tracker-export-and-invoice",
+    "prompt": "Add a CSV export of last month's hours for my accountant. She opens it in German Excel.",
+    "files": {
+      "package.json": "{\n  \"name\": \"hours\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"scripts\": {\"typecheck\": \"tsc --noEmit\", \"test\": \"vitest run\"},\n  \"devDependencies\": {\"typescript\": \"5.9.3\", \"vitest\": \"3.2.4\", \"@types/node\": \"24.3.0\"}\n}\n",
+      "tsconfig.json": "{\"compilerOptions\": {\"strict\": true, \"noEmit\": true, \"module\": \"nodenext\", \"moduleResolution\": \"nodenext\", \"target\": \"es2023\", \"types\": [\"node\"]}}\n",
+      "CLAUDE.md": "# hours\nRun `npm run typecheck` and `npm test` before finishing.\n",
+      "src/domain/types.ts": "export type Project = { id: string; label: string; code: string; rateMinorPerHour: number }\nexport type Entry = { id: string; projectId: string; startedAt: string; seconds: number }\n",
+      "src/domain/price.ts": "import type { Entry, Project } from './types.js'\n\n// Seconds per project are rounded once to whole minutes, then priced half away from zero.\nexport function price(entries: Entry[], project: Project): { minutes: number; netMinor: number } {\n  const seconds = entries.filter((e) => e.projectId === project.id).reduce((s, e) => s + e.seconds, 0)\n  const minutes = Math.round(seconds / 60)\n  const netMinor = Math.round((minutes * project.rateMinorPerHour) / 60)\n  return { minutes, netMinor }\n}\n",
+      "src/domain/invoice.ts": "import { price } from './price.js'\nimport type { Entry, Project } from './types.js'\n\nexport function buildInvoice(entries: Entry[], projects: Project[]) {\n  const lines = projects.map((p) => ({ project: p.label, ...price(entries, p) })).filter((l) => l.minutes > 0)\n  const netMinor = lines.reduce((s, l) => s + l.netMinor, 0)\n  return { lines, netMinor, vatMinor: Math.round(netMinor * 0.19) }\n}\n",
+      "src/domain/invoice.test.ts": "import { expect, test } from 'vitest'\nimport { buildInvoice } from './invoice.js'\n\ntest('80 minutes at 64,13 EUR per hour is 85,51 EUR', () => {\n  const p = { id: 'p1', label: 'Website relaunch', code: 'web', rateMinorPerHour: 6413 }\n  const inv = buildInvoice([{ id: 'e1', projectId: 'p1', startedAt: '2026-10-05T08:00:00Z', seconds: 4800 }], [p])\n  expect(inv.netMinor).toBe(8551)\n})\n"
+    },
+    "setup": "git init -q && git add -A && git -c user.name=t -c user.email=t@t commit -qm init",
+    "assertions": [
+      "The export reuses price() from src/domain/price.ts; there is no second rounding or pricing code",
+      "A test builds the CSV and the invoice for the same entries and asserts CSV net sum equals invoice net",
+      "An entry of 0 seconds is not exported as a 0:00 line, and the rule is recorded in Decisions or the report",
+      "The export takes from and to, with last month as the requested period, computed in the business zone",
+      "The CSV shows project labels, not codes",
+      "The CSV uses semicolons, a UTF-8 BOM and CRLF, and neutralises cells that start with = + - @ or tab, with a test"
+    ]
+  },
+  {
+    "id": "waitlist-admin-from-brief",
+    "prompt": "Here is the brief for the marketing site with the waitlist (BRIEF.md). Build it in this Next.js app. I am offline until next week.",
+    "files": {
+      "package.json": "{\n  \"name\": \"waitlist\",\n  \"private\": true,\n  \"scripts\": {\"dev\": \"next dev\", \"build\": \"next build\", \"typecheck\": \"tsc --noEmit\", \"test\": \"vitest run\"},\n  \"dependencies\": {\"next\": \"16.0.1\", \"react\": \"19.2.0\", \"react-dom\": \"19.2.0\", \"zod\": \"4.1.12\"},\n  \"devDependencies\": {\"typescript\": \"5.9.3\", \"vitest\": \"3.2.4\", \"@types/node\": \"24.3.0\", \"@types/react\": \"19.2.2\"}\n}\n",
+      "next.config.ts": "import type { NextConfig } from 'next'\n\nconst nextConfig: NextConfig = { cacheComponents: true }\nexport default nextConfig\n",
+      "tsconfig.json": "{\"compilerOptions\": {\"strict\": true, \"noEmit\": true, \"module\": \"esnext\", \"moduleResolution\": \"bundler\", \"jsx\": \"preserve\", \"plugins\": [{\"name\": \"next\"}]}}\n",
+      "app/layout.tsx": "export default function RootLayout({ children }: { children: React.ReactNode }) {\n  return <html lang=\"de\"><body>{children}</body></html>\n}\n",
+      "app/page.tsx": "export default function Page() {\n  return <main>Coming soon</main>\n}\n",
+      "BRIEF.md": "# Brief: Belegfrei waitlist site\n\nA bilingual (German, English) marketing site for an accounting app that is not launched yet.\n\n1. A landing page that explains the product, and a waitlist form: email, profession (from a fixed list), optional company.\n2. A privacy page. It says entries are used only for the launch email and are deleted on request.\n3. A password protected admin page that lists the entries and exports them as CSV for our office team (German Excel).\n4. The README lists your decisions, open questions for us, and what is not finished.\n\nWe cannot answer questions during the build.\n"
+    },
+    "setup": "git init -q && git add -A && git -c user.name=t -c user.email=t@t commit -qm init",
+    "assertions": [
+      "The rendering model is recorded in Decisions: static public pages, with Cache Components switched off or a written reason to keep it",
+      "The admin uses a session cookie login with a sign out, not HTTP Basic auth",
+      "The admin login is rate limited and the four F7 probes (a to d) are run with their results pasted",
+      "One clientIp helper reads the forwarding headers, driven by TRUST_PROXY_HOPS, with a test that a forged X-Forwarded-For gets the same bucket",
+      "The admin can delete a single entry with a confirm, because the privacy text promises deletion, and the promises table has that row",
+      "The email schema accepts anna@müller.de and rejects <b>@x.de, with a test",
+      "The CSV shows profession labels, not codes, in German Excel format",
+      "The README has the sections gate K2 checks, and the K2 and K3 commands print nothing"
     ]
   }
 ]

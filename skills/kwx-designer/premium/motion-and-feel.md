@@ -141,6 +141,18 @@ damping   = 4 * PI / (duration + 4 * PI * bounce) (bounce < 0)
 
 **Treat behaviours as a family.** Reuse the same few springs across the product so people learn one feel (Apple WWDC18).
 
+### Qt/QML springs
+
+`SpringAnimation` takes per tick values, so stiffness and damping computed from the physics formulas above explode. Measured at about 60 fps against macOS:
+
+| Feel | spring | damping | Result |
+|---|---|---|---|
+| Smooth | 2.5 | 0.42 | no bounce, about 0.6 s |
+| Snappy | 3.5 | 0.35 | +1% overshoot, about 0.4 s |
+| Bouncy | 3.0 | 0.25 | +9% overshoot, about 0.45 s |
+
+In a project with its own constants (Iris.qml `snappySpring`, `smoothSpring`, `sizeSpring`, `fillSpring`) use those, never new numbers per component. Choreography: a springy entrance, a soft spring displacement of the neighbours, and a non spring accelerating exit (InCubic about 220 ms plus a fade). Check: each `SpringAnimation` spring and damping pair is a named constant.
+
 ## 6. Interruptibility and velocity
 
 The single most important property of fluid motion (Apple: "The thought and gesture happen in parallel").
@@ -174,6 +186,7 @@ The single most important property of fluid motion (Apple: "The thought and gest
 - **Tooltips:** delay the first one to prevent accidental triggers (Radix defaults to 700ms; 300 to 700ms is the usual range); once one is open, neighbours open instantly with no animation (Emil, Vercel, Radix and Base UI behaviour).
 - **Theme switch:** no transitions during a light/dark switch (Rauno). Disable transitions for one frame while swapping.
 - **Skeletons match the final layout exactly** so nothing jumps when content arrives (Vercel).
+- **Content never arrives before its container (KM10).** When a container grows (a bubble, a card, a sheet, a row), its content stays hidden (opacity 0 or buffered) until the container's current size covers it, then fades in. While streaming, growth leads and letters follow. Content and container never run on two unrelated clocks. On opening surfaces, rows stagger in after the body. Web: reveal on `transitionend` or when the measured box covers the content; Framer Motion `layout` with the children delayed. React Native: Reanimated children opacity derived from the container's progress. QML: gate opacity on the size Behavior or spring being settled. Check: every animated container names what drives its children's visibility.
 
 ## 9. Gestures, drag and momentum
 
@@ -236,6 +249,7 @@ From Apple *Designing Fluid Interfaces*, Rauno *Invisible Details*, and Emil's d
 - Play at 2 to 5x slower, or step frame by frame in the DevTools Animations panel. Look for: two overlapping states in a crossfade, wrong transform origin, properties out of sync, abrupt start or stop.
 - Test gestures on a real device, not only a simulator.
 - Ask: if I trigger it twice quickly, does it retarget smoothly or restart from zero?
+- **Measure from the drawn layout (KM11).** A size that drives an animation is read from the drawn item after layout, or from a twin that matches its font, weight, letter spacing, renderType and width. Web: after `document.fonts.ready`, in a ResizeObserver or the next frame. React Native: `onLayout`. QML: wait a polish (positioner sizes are known only after the next one) or compute the fixed parts by arithmetic. Change the state before writing values other handlers react to. Check: each size read that feeds an animation sits in a ResizeObserver, `onLayout`, rAF or polish aware wait, never in the handler that changed the content.
 
 ## 14. Review table (before, after, why)
 

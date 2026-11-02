@@ -52,7 +52,7 @@ Review from the foundation up, the same order the redesign method uses: content 
 4. Edge values: zero and negative amounts, rounding (3 items at a third each), another time zone, a date across midnight or a daylight saving change.
 5. Volume: 3 rows or 30,000, one user or a team of 200. Find the expected size in the project (README, seed data, the product's pitch) and write the size you assumed in the review.
 6. The full catalog: would this image or card style still look right next to 20 others in a grid?
-7. Code only: find every text binding and image binding; for each, state the minimum and maximum realistic value and compute whether it fits (font px times characters times about 0.55 against the box width).
+7. Code only: find every text binding and image binding; for each, state the minimum and maximum realistic value and compute whether it fits (characters x px x 0.6, 0.65 for semibold and bold, against the width left after padding and siblings; `quality/predict-from-code.md` section 3). Then go through every mistakes library entry (the local library, then `quality/mistakes-library.md`), one line each: applies or not, and how the code avoids it.
 
 ## 5. Screen 80 next to screen 1
 
@@ -97,7 +97,7 @@ Write the answer per action. Any "no" is a finding.
 
 ## 9. Rank the actions (spectrum of explicitness)
 
-List every action on the screen with its frequency and importance (Kole Jain, dashboard flaws). Place each on the spectrum: always visible, visible icon, icon on hover with tooltip, hidden in a menu. Findings: a rare action that is always visible (a red "remove" button on every row), or a frequent one that is buried.
+List every action on the screen with its frequency and importance (Kole Jain, dashboard flaws). Place each on the spectrum: always visible, visible icon, icon on hover with tooltip (safe actions only: copy, open; destructive actions go behind a menu and a confirm, gate A13), hidden in a menu. Findings: a rare action that is always visible (a red "remove" button on every row), or a frequent one that is buried.
 
 ## 10. Design theater audit
 
@@ -133,7 +133,7 @@ Go over the components the change adds or touches:
 4. **Number findings across all groups,** so the user can answer "fix 2 and 5".
 5. **Each finding:** a bold title with `file:line` that states the user impact in plain words ("Long names push the Save button off the card", not the component name), then four short parts: **What this is** (context for someone who never saw the code), **Problem**, **Fix**, **If we skip it** (the consequence).
 6. **Every finding needs a concrete case:** "this input or situation leads to this wrong result". No case, no finding. Before reporting, re-read the lines: the importer exists, the value can really be empty, the code really is unused.
-7. **Be specific:** "The badge and the title both use 700 weight and the CTA is neon, so three things compete; drop the title to 500 and mute the CTA", not "the hierarchy is off". No "consider", no vague worries.
+7. **Be specific:** "The badge and the title both use 700 weight and the CTA is neon, so three things compete; drop the badge to 500 and mute the CTA", not "the hierarchy is off". No "consider", no vague worries.
 8. **Smallest fix that works.** Prefer fixes that delete code. Never propose a new layer, framework or config to fix one screen.
 9. **A marked deferral is a decision.** A `kwx-defer:` comment (`workflow/lean-build.md`) that names its limit is not a finding, unless the expected load already crosses it.
 10. **Separate fact from taste.** Taste comments are labelled as taste and come last.
@@ -167,3 +167,6 @@ If we skip it: on light products the user cannot find the way back.
 | Past the diff | Every importer of a changed component or token was opened |
 | Volume | The assumed data size is written in the review |
 | Findings | Each has a concrete case, a fix and a consequence; numbered; verdict line present |
+| Mistakes library | Every entry named once with applies or N/A |
+
+Scoring: `quality/scoring-rubric.md` is for critiques of someone else's UI and for the before and after audit of a redesign. Your own builds ship on the gate line instead (no `[critical]` row fails, no open FAIL; `quality/quality-gate.md` section 14).

@@ -27,9 +27,9 @@ Before shipping, go through every table. For each tell, run the detection step o
 
 | Tell | Detect in code | Fix |
 |---|---|---|
-| Emoji used as icons (checkmark, clipboard, eye, calendar, bar chart, phone, lock, sparkle, waving hand in a greeting) | `grep -rnP '[\x{2190}-\x{21FF}\x{2300}-\x{23FF}\x{25A0}-\x{25FF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}\x{1F000}-\x{1FAFF}\x{FE0F}]' src` (the full check in `quality-gate.md` section 14) | One interface icon library (Phosphor, Lucide or similar), line icons, one stroke weight. Emoji only where users pick them as content (Notion page icons) |
+| Emoji used as icons (checkmark, clipboard, eye, calendar, bar chart, phone, lock, sparkle, waving hand in a greeting) | `grep -rnP '[\x{2190}-\x{21FF}\x{2300}-\x{23FF}\x{25A0}-\x{25FF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}\x{1F000}-\x{1FAFF}\x{FE0F}]' src` (the full check in `quality-gate.md` section 15) | One interface icon library (Phosphor, Lucide or similar), line icons, one stroke weight. Emoji only where users pick them as content (Notion page icons) |
 | Unicode symbols as icons (stars, check marks, arrows, media keys typed as characters: U+23F8 pause, U+25B6 play, U+21BB reset in a generated countdown) | Same grep: its arrow (U+2190 to U+21FF), technical (U+2300 to U+23FF) and geometric (U+25A0 to U+25FF) ranges catch them; the old pictograph only grep found none of the three | Real icons from the set; draw a custom icon on the same grid if the set lacks one |
-| A decorative icon in every KPI tile and feature card, in a tinted disc | Search for icon wrappers with a tinted background repeated in a grid | Remove it. An icon must carry meaning (device type, brand logo, status) |
+| A decorative icon in every KPI tile and feature card, in a tinted disc | Search for icon wrappers with a tinted background repeated in a grid | Slop: an unrelated icon on every card, rainbow tints, a sparkle. Fine: an icon that names the step or object in a tile of the one brand tint, used the same way across the section. Otherwise remove it; an icon must carry meaning (device type, brand logo, status, the step it names) |
 | Icon tile grid: a 3x2 grid of identical cards, tiny tinted icon square, title, two lines | A card map rendering icon plus title plus text, 6 items | One feature per section, text left and a real product visual right |
 | Sparkle icon on every AI or "create" action | `grep -rni sparkle` | Remove unless the product's brand uses it consistently |
 | Mixed icon styles (filled and outline, several colours, different weights) | Several icon imports or style props | One style, one colour, one weight |
@@ -44,9 +44,8 @@ Before shipping, go through every table. For each tell, run the detection step o
 | Purple and violet gradients (hero cards, buttons, avatars) | `grep -rniE 'from-(purple|violet|indigo)|#667eea|#764ba2|#7c3aed|#6366f1|#8b5cf6|linear-gradient'` (`#667eea` to `#764ba2` is the most common generated gradient)  | Solid brand colour from the ramp; gradients only with a brand reason |
 | Gradient headline text (cyan into green, purple into pink) | `bg-clip-text`, `background-clip: text`, `text-transparent` | Plain bold headline in the text colour; one solid accent at most |
 | Gradient CTA buttons | `linear-gradient` on button classes | One solid accent fill |
-| Bright accent fill on every action ("Create New Link", "Export Report", "Generate") | Count accent buttons per screen | One accent fill per view; header actions dark neutral with an icon |
-| Coloured borders and chips to tell plans or cards apart (green "Current", purple "Popular", purple bordered upgrade card) | Per item border colour props | Equal neutral cards |
-| Data text in the brand colour (green monospace URLs) | Accent token on body data | Neutral text; accent for actions and live states |
+| Bright accent fill on every action ("Create New Link", "Export Report", "Generate") | Count filled accent buttons per area | One filled primary per area (SKILL.md rule 2); other actions quiet or outlined; the brand colour still marks current nav, selected chips and key numbers; never near black as a stand in for the brand |
+| Colour picked per card to look varied, a highlight colour per plan card, rainbow icon discs, neon | Per item border or background colour props that encode nothing | Colour that encodes a real category or status is data, not slop: a 3 to 6 px stripe or a chip from a fixed set of 4 to 6 muted hues, the same hue for the same category on every screen, always with a word (course type stripe, red Ausgebucht chip, green 6 Plätze frei). Brand colour on key numbers, times and links is fine. See the calendar bars in `patterns/mobile-patterns.md` and `patterns/dashboards-and-data.md` section 2 |
 | Neon saturated hues (#00FF00 like green, pure yellow) | Hex values with max saturation | Muted versions (olive, mustard, steel blue, plum, muted red) |
 | Rainbow semantic soup: blue, green, purple, red icon colours on four KPI tiles | Per tile colour props | Colour from data only |
 
@@ -55,7 +54,7 @@ Before shipping, go through every table. For each tell, run the detection step o
 | Tell | Detect in code | Fix |
 |---|---|---|
 | The same KPIs repeated on several pages and in the sidebar | `grep` the KPI component; more than one route | One home per metric |
-| Four KPI tiles in a row with small numbers (often 0) | A 4 column grid of stat cards | Two wide cards with label, chevron, big number, sparkline; or nothing |
+| KPI tiles that repeat a chart, repeat on several pages, show 0 on a new account, or carry a decorative icon disc | A grid of stat cards computed from the same series as a chart, or rendered on more than one route | One home per metric. On a list page, 2 to 4 figures the user acts on (Open 2.311,58 EUR / Overdue 1.320,90 EUR / Unbilled 2.792,50 EUR) with a count line, clickable to filter, are required (`patterns/data-dense-tools.md` section 3) |
 | Cards that do nothing ("Choosing the Right Plan" explainer, tip cards with no action) | A card with neither a handler nor a data binding | Delete it |
 | Cards inside cards | Card component rendered inside a card | Section header and white space |
 | Sidebar with stat widgets | Metrics inside the sidebar component | Navigation only |
@@ -70,13 +69,13 @@ Before shipping, go through every table. For each tell, run the detection step o
 |---|---|---|
 | Gradient circle avatar with the user's initial | `charAt(0)`, `[0].toUpperCase()` inside a gradient circle | Account row: avatar or neutral person icon, name, chevron, popover with Billing and Usage, Settings, Sign Out |
 | Separate Billing, Settings, Sign Out links in the sidebar | Several account links in nav | Into the account popover |
-| A row of three buttons on every list item (Analytics, QR Code, Delete) | Count buttons in the row component | Three dot overflow menu; hover icons for quick actions |
-| Text chips with emoji ("Verified Safe", "Copy") | Chip components with emoji or verbose labels | Icon only affordances with tooltips |
+| A row of three buttons on every list item (Analytics, QR Code, Delete) | Count buttons in the row component | In desktop management lists with 2 or 3 actions per row, quiet text buttons (Bearbeiten, Archivieren); overflow menu at 4 or more; destructive never revealed by hover (quality-gate A13) |
+| Text chips with emoji ("Verified Safe", "Copy") | Chip components with emoji or verbose labels | Plain words, no emoji; icon only only for close, search, more, plus, with tooltip and accessible name |
 | Light grey filled inputs on a dark surface | Input background lighter than the surface in dark theme | Dark fill with a hairline border |
-| Full width bright CTA at the bottom of every form | `w-full` primary in desktop modals | Sized to label, bottom right |
+| Full width bright CTA at the bottom of every form | `w-full` primary in desktop modals | Desktop modals only: sized to label, bottom right. Below 640px hero and form CTAs stack full width |
 | Disabled button under a promo card ("Create Team" disabled beneath "Upgrade Required") | Disabled control with no path | One clear upgrade path, no dead controls |
 | Floating centre "+" FAB and a tip card on a dashboard home | FAB plus tip card in the home layout | Only if the "+" is truly the main action; drop the tip card |
-| ALL CAPS buttons, uppercase attribute labels | `uppercase` on buttons | Sentence case |
+| ALL CAPS buttons, uppercase attribute labels | `uppercase` on buttons | Sentence case; uppercase only for one or two word eyebrows (`visual/typography.md` section 4) |
 | Heavy, dark, tight drop shadows | Shadow tokens with high opacity and small blur | Low opacity, large blur |
 
 ## 6. Data and dashboard tells
@@ -97,7 +96,7 @@ Before shipping, go through every table. For each tell, run the detection step o
 
 | Tell | Detect in code | Fix |
 |---|---|---|
-| Em dashes in UI copy | `grep -rnP '\x{2014}|\x{2013}' src` | Commas, full stops, colons, parentheses |
+| Em dashes in UI copy | `grep -rnP '[\x{2013}\x{2014}]' src` | Commas, full stops, colons, parentheses |
 | Emoji greeting ("Good morning" plus a waving hand) | Emoji grep | Plain greeting or none |
 | Slogans where information belongs ("Keep every session within reach!") | Exclamation strings in state views | Facts: count, plain headline, exact date |
 | Generic CTA labels ("Submit", "Get Started", "Learn More" everywhere) | Repeated generic strings | Verb plus object plus outcome ("Search 12 Available Tables") |

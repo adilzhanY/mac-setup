@@ -12,7 +12,9 @@ A form is a list of decisions the user has to make. The best form asks fewer que
 6. The submit action
 7. Validation and errors
 8. Labels and consistency
-9. Checks
+9. Advertise accepted formats and echo the parse
+10. Calculators and results
+11. Checks
 
 ---
 
@@ -23,6 +25,8 @@ A form is a list of decisions the user has to make. The best form asks fewer que
 3. A default is a real value in body colour, not placeholder text.
 4. Never preselect consent, marketing opt ins, paid add ons or destructive options.
 5. Ask later for what is not needed now (profile details after the first win).
+6. A create form or a form filled daily opens prefilled with the most likely values (the last used project stored per device, today, the last hour ending now rounded to 5 minutes); the first field is focused. Time specific defaults: `patterns/data-dense-tools.md` section 5.
+7. A placeholder never looks like a value: a grey 09:00 on an empty field fails, because it reads as data. A placeholder explains the format or where the text appears ("Erscheint im Tätigkeitsnachweis der Rechnung"). Never "Optional" as a placeholder: mark optional fields in the label.
 
 ## 2. Pick the right control
 
@@ -39,7 +43,7 @@ A form is a list of decisions the user has to make. The best form asks fewer que
 
 ## 3. Field anatomy
 
-- Label above the field. Kole Jain's input: small caps grey label "EMAIL" above a rounded field, placeholder in light grey ("hello@kolejain.com"). The label stays visible when the field has a value; placeholder never replaces the label.
+- Label above the field, in sentence case: a grey label "Email" above a rounded field, placeholder in light grey ("hello@kolejain.com"); case rules in `visual/typography.md` section 4. The label stays visible when the field has a value; placeholder never replaces the label.
 - Optional fields say "(optional)" in the label ("Title (optional)"); required is the default.
 - Helper text below in grey when the format is not obvious.
 - On dark surfaces: dark fill with a subtle 1 px border, not a light grey filled box (vibe coded SaaS).
@@ -100,17 +104,33 @@ Warning is for optional issues that do not block; error blocks submission.
 4. The same field has the same name everywhere in the product.
 5. Field icons: one icon set, one style (all outline), one colour; they turn accent when the field is filled, if used at all.
 
-## 9. Checks
+## 9. Advertise accepted formats and echo the parse
+
+1. Loose input (heute, gestern, 3.11., 930, 1,5, 90m) is named in the hint ("z. B. 1:30, 1,5 oder 90m"), and the parsed result is echoed under the field ("29.10.2026"). Hidden parsing counts as a missing feature: nobody types a format they were never told about.
+2. Offer a duration field next to start and end, kept in sync with them.
+3. One parser test per lenient field, covering every format the hint names.
+
+## 10. Calculators and results
+
+1. A legal or accuracy caveat (an estimate, not tax advice; prices plus VAT) sits inside the result card, one line directly under the figure, with a link to details. Never below the CTA, where nobody reads it before acting.
+2. A short "how we compute" block sits near the result.
+3. The parts shown add up to the total shown (`visual/data-visualization.md` section 8).
+
+## 11. Checks
 
 | Check | Pass when | Verify in code |
 |---|---|---|
 | No needless fields | Each field is used by the submit handler or needed later in this flow | Map every field to where its value is consumed |
 | Defaults set | Predictable fields have initial values | Read initial form state |
 | All states exist | Focus, error, warning, disabled, loading styles defined for the input component | Read the input component's style variants |
-| Focus visible | Focus ring defined, never `outline: none` without a replacement | `grep -n "outline: *none\|outline-none"` |
+| Focus visible | Focus ring defined, never `outline: none` without a replacement | `grep -n -e "outline: *none" -e "outline-none"` |
 | Label always visible | A label element, not placeholder only | Each input has `<label>`/`aria-label` |
 | Error copy specific | Every validation rule has its own message | Read the validation schema messages |
 | Data kept on error | Form state is not reset in the error branch | Read the submit error handler |
 | CTA outcome | Label is not "Submit"/"OK"; includes the action and, when known, the count or total | Read the label |
 | No double submit | Button disabled or loading while pending | Check the pending flag on the button |
 | Two column when sparse | Modal with 4+ short fields uses a grid | Read the layout |
+| Prefilled | Create and daily forms open with the most likely values | List each input with its initial value |
+| No value like placeholders | No placeholder looks like a time, date, amount or real email, none reads "Optional" | `grep -rnE -e 'placeholder="Optional"' -e 'placeholder="[0-9]{1,2}[:.][0-9]{2}"'` |
+| Formats advertised | Every lenient field names its formats and echoes the parse; a parser test exists | Read the hint, the echo element and the test |
+| Caveat placement | The caveat comes after the figure and before the CTA in DOM order | Read the result card markup |

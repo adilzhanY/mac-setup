@@ -139,7 +139,7 @@ The agent version of Sebastiaan de With's "mom test": give a fresh subagent with
 - **Every change to the set ships with its contact sheet** (Lucide requires screenshots on every icon PR). Show the user the sheet, not single icons.
 - One approver for the whole set (Streamline: an art director approves, at most two designers make corrections). For an agent, the approver is the user; never call a set finished without their look at the sheet.
 - Review the whole set again whenever ten new icons have been added, with the most liked and least liked question.
-- Record every defect the user reports in the project's mistakes list with its cause and the check that catches it (for this user: `~/.claude/ui-designer/mistakes.md`).
+- Record every defect the user reports in the project's mistakes list with its cause and the check that catches it (for this user: `~/.claude/ui-designer/mistakes.md`), and generalize it into `quality/mistakes-library.md` (Adding an entry).
 
 ## 7. Naming and metadata
 

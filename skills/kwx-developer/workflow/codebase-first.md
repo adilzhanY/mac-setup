@@ -22,8 +22,9 @@ Run this before the first edit, the first review comment or the first audit find
 |---|---|
 | First task in a repo in this conversation | the whole procedure |
 | Another task in the same repo, same conversation | nothing; reuse the map, re-read only DECISIONS.md and TODO.md if they changed (`git diff --stat -- DECISIONS.md TODO.md`) |
-| A one line fix the user pointed at (typo, a constant) | steps 3 and 4 only |
+| A one line fix the user pointed at (typo, a constant) | steps 3 to 5 (instruction files, check commands, the scan) |
 | An audit (`audit-and-ask.md`) or a full stack feature (`feature-workflow.md`) | the whole procedure, including step 7 |
+| An empty or new repo plus a written brief | steps 2 and 3, then `workflow/new-project-from-brief.md` |
 
 Budget: about 5 minutes and 15 to 25 tool calls for a repo under 2,000 files. Over that size, follow `ai-agents/before-you-code.md` section 6: search for the task's domain words, read only the change path, and hand broad sweeps to a read-only search subagent that returns its conclusion, not file dumps. If you have opened about 30 files and have no map, stop reading and write the map with the unknowns marked.
 
@@ -76,6 +77,7 @@ find . \( -name CLAUDE.md -o -name AGENTS.md -o -name CONTRIBUTING.md -o -name A
 ls .claude/rules .cursor/rules docs/adr docs/decisions doc/adr 2>/dev/null
 ```
 
+0. Read the owner's global files: `~/.claude/CLAUDE.md`, every agent definition the task will use (`~/.claude/agents/*.md`), and for UI work the defect library they name (in this setup `~/.claude/ui-designer/mistakes.md`). They rank with the project's CLAUDE.md, the nearest file wins on a conflict. Copy the rules that bind this task into the map's "Owner rules" line. (Trial 2026-11-01: this step used to find only files inside the repo, and the main agent's UI briefs never passed the library along.)
 1. Read every `CLAUDE.md` and `AGENTS.md` on the path to the files you will touch, nearest last (nearest wins). Their commands and rules override this skill.
 2. Read `DECISIONS.md` and every ADR in full, never with `head`. Build the do-not-flag list with the awk in `quality/decision-records.md` section 6 and keep it in the map. A decision in that list is never reported or asked about again.
 3. Read `TODO.md` in full. Note its heading, id and wrap style (`quality/tech-debt-and-todo.md` section 5) and the open finding keys:
@@ -160,6 +162,7 @@ Size: <n> tracked files, <languages with counts>; <n> commits, last <date>; <sma
 Stack: <framework + version>; <DB + access layer>; <validation>; <client data lib>; <tests>; <lint/format>
 Layout: <top folders, one clause each>; organised by <feature | layer | mixed>
 Instruction files read: <paths>
+Owner rules: <binding global rules quoted, e.g. no em or en dashes; defect library ids that apply>
 Decisions in force: <D-ids, one line each>; do-not-flag keys: <kind:area list>
 Open TODO keys: <list>, TODO.md style: <heading/id/wrap>
 Checks: format=<cmd>; typecheck=<cmd>; lint=<cmd>; test=<cmd>; one test=<cmd>; build=<cmd>; run=<cmd>
@@ -201,6 +204,7 @@ Any output means the stack, checks, rules or decisions may have changed: rebuild
 | Check | Pass condition | How to verify |
 |---|---|---|
 | Instruction files read | every CLAUDE.md and AGENTS.md on the change path, DECISIONS.md and TODO.md opened in full | the map's "Instruction files read" line lists them |
+| Owner files read | the map has an Owner rules line quoting the binding global rules | read the map |
 | Do-not-flag list built | decision keys and open TODO keys recorded before any finding | the map has both lines, even if empty |
 | Real checks found | each check row has a command from CI, scripts or an instruction file, or "none" | the map's Checks line; no invented command |
 | Scan run and kept | `scan-before.txt` exists in the scratchpad | `ls "$SCRATCH/scan-before.txt"` |

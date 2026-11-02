@@ -85,6 +85,7 @@ When you do use one:
 6. **Scale friction to rarity and severity.** For rare catastrophic actions, require a non-standard act: typing the resource name or "DELETE" (Mailchimp, GitHub repository deletion). Use this rarely or it loses its effect.
 7. **Use context to decide** whether to confirm at all: a banking app might confirm only payments unusually large for that user.
 8. **Confirm before closing something that would lose user content,** whether closed by button or gesture, and offer "Save draft" as a choice.
+9. **Nothing destructive on hover.** A destructive action (delete, forget, unpair, disconnect, discard) is never one click on a control that appears on hover: hover may reveal a menu trigger, and the destructive item then needs a second deliberate step (a named confirm or an undo window). Real incident: a hover only Forget unpaired the user's earbuds (KM7). An in place two step button must ignore a second click within 600 ms, so a double click cannot confirm itself.
 9. **Never show two alerts at once.** One modal at a time.
 
 ## 7. Error messages
@@ -126,6 +127,7 @@ Tognazzini: users should never lose work through their own error, a network glit
 
 - List every destructive or wide action. For each: undo available? If not, a specific confirmation? Neither is a severity 4 defect.
 - Do any confirmations exist for routine or undoable actions? Remove them.
+- Is any destructive handler reachable from a control that appears on hover? Move it behind a menu and a second step.
 - Does any dialog use Yes/No or OK for a decision? Rename the buttons to outcomes.
 - Is the destructive button the default anywhere? Change it.
 - Does any error message contain a code, the word "invalid", or no fix? Rewrite it.

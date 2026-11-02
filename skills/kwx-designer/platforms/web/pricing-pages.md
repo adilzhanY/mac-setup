@@ -107,7 +107,7 @@ Follow NN/g:
 - Consistent values: "Included", a check, a number, or a dash for not included. Never playful varied wording.
 - Translate technical features into outcomes, with a short tooltip or footnote for jargon.
 - Use a real `<table>`; check icons have text alternatives ("Included", "Not included").
-- On mobile: show 2 plans at a time with a plan switcher, or turn into per-plan lists; keep the plan name visible while scrolling.
+- On mobile: below 640 px never render the comparison as a min-width table. Render one card per plan with the same row order, recommended plan first, or a 2 column table with a plan switcher above it; keep the plan name visible while scrolling. A sideways scrolling table hides plan names and is a fallback only for more than 5 plans.
 
 ## 9. Trust, trial and cancel terms
 
@@ -171,4 +171,4 @@ Template for a mobile app:
 - [ ] Web prices equal in-app prices; regional price note.
 - [ ] Comparison table (if any) is a real table with sticky header and grouped rows.
 - [ ] FAQ answers the money questions first.
-- [ ] Works at 390 px: stacked or tabbed, recommended first.
+- [ ] Works at 390 px: stacked or tabbed, recommended first, no page overflow (gate C13); `grep -rnE 'min-w-\[' ` finds no min-width class without an `md:` or `lg:` prefix on the comparison.

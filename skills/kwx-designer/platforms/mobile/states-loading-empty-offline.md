@@ -96,7 +96,7 @@ Rules:
 - Assume the network will vanish. Flighty designs for this explicitly: "Whenever someone takes off, we have to assume that we won't see them again until they land." Its Live Activity switches to a progress view that works without live data.
 - Cache what the user saw last and show it offline, marked with when it was last updated ("Updated 10 min ago").
 - Queue writes locally and sync later (local first). Show a small per item pending mark, not a modal. Superhuman keeps a local database so mail opens instantly even offline.
-- Show one quiet, persistent offline indicator (a banner under the top bar or a status pill), not an alert per request.
+- Show one persistent offline banner, not an alert per request. It sits at the top of the content, above filters, on the inverse (dark) surface with white text and an icon, and states the data time with the day ("Offline. Stand von Mo., 2. Nov., 18:20 Uhr."). A light grey row under the filters is missed. Keep separate offline, error and empty views. Check: the banner is the first child of the content and uses the inverse surface token.
 - Disable only what truly needs the network, and say why on tap ("Needs a connection").
 - When connection returns, sync silently and only surface conflicts.
 - Never lose a draft because the request failed.

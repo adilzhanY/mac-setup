@@ -9,9 +9,21 @@ Checks, all relative to the skill root:
   pins      load bearing phrases are still present (see PINS)
   contents  every reference file over 100 lines starts with a Contents list
   budget    SKILL.md stays under about 5k tokens, description under 1024 chars
-  greps     the emoji and palette greps in quality-gate.md section 14 still
+  greps     the emoji and palette greps in quality-gate.md section 15 still
             catch known bad lines and pass known clean ones (runs real grep)
   agent     ~/.claude/agents/ui-designer.md still points at SKILL.md (if present)
+  mistakes  every KM entry of quality/mistakes-library.md has its Looked like,
+            Cause, Rule, Check and Source lines; a WARNING (not a problem) for
+            each id of ~/.claude/ui-designer/mistakes.md no KM Source names
+  router    at most 3 rows of the "Read what you need" table are bold in the
+            Read when column
+  reversed  rules reversed in 1.1.0 (the 0.55 width factor, destructive on
+            hover, the uppercase EMAIL label, one accent per view with dark
+            neutral header actions) never come back outside sources/
+  tablegrep no backticked grep in a markdown table row contains an escaped
+            pipe: copied raw, a backslash pipe is a literal pipe and the grep finds nothing
+  version   VERSION, metadata.version in SKILL.md and the first release heading
+            in RELEASES.md agree (checked when VERSION exists)
 
 Usage:
     python3 check_skill.py            check the skill this script lives in
@@ -29,6 +41,20 @@ import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AGENT = os.path.expanduser("~/.claude/agents/ui-designer.md")
+LOCAL_MISTAKES = os.path.expanduser("~/.claude/ui-designer/mistakes.md")
+ROUTER_BOLD_MAX = 3
+KM_FIELDS = ("Looked like", "Cause", "Rule", "Check", "Source")
+# Rules 1.1.0 reversed. A match outside sources/ means an old rule came back.
+REVERSED = [
+    r"times about 0\.55|0\.55 \(average glyph width\)",
+    r"rare and destructive ones on hover",
+    r"destructive actions in tight space appear on hover",
+    r"\"x\" \(chosen\)|hover \"x\" \(chosen\)",
+    r"small caps grey label \"EMAIL\"",
+    r"header actions dark neutral",
+    r"One accent fill per view; header actions neutral",
+    r"[Oo]ne accent fill per view",
+]
 DASHES = re.compile("[\u2013\u2014]")
 SKILL_CHAR_BUDGET = 20000  # about 5k tokens at 4 characters per token
 CONTENTS_THRESHOLD = 100
@@ -44,17 +70,28 @@ PINS = {
         "Never guess sizes on screen",
         "No em or en dashes",
         "Run `quality/quality-gate.md` in full",
+        "Read the mistakes library before you write UI",
+        "owner-house-style.md",
+        "Daily use first",
     ],
     "quality/quality-gate.md": [
         "An item marked **[critical]** blocks shipping on its own.",
-        "## 14. Fast code checks",
-        *[f"| {i} [critical] |" for i in ("A1", "A2", "B1", "C1", "D1", "E1", "F1", "F2", "H1", "I1", "I3", "K1")],
+        "## 15. Fast code checks",
+        *[f"| {i} [critical] |" for i in ("A1", "A2", "A13", "B1", "C1", "C8", "C10", "C13", "D1", "E1", "E10",
+                                          "F1", "F2", "H1", "I1", "I3", "K1", "L1", "L2")],
+        "or 0.65 (semibold, bold)",
+        "Mistakes library:",
+        "never by taking screenshots",
+        "Only your eyes can confirm",
     ],
     "workflow/lean-build.md": ["kwx-defer: <the limit>, <when to upgrade>"],
-    "quality/enforcement.md": ["KWX GATE ACTIVE", "not wired yet"],
+    "quality/enforcement.md": ["KWX GATE ACTIVE", "wired in ~/.claude/settings.json"],
+    "quality/predict-from-code.md": ["0.65", "0.40 to 0.55"],
+    "platforms/desktop/qt-qml.md": ["UiScale.px", "pixelSize.smallest"],
+    "house/owner-house-style.md": ["Order of authority"],
 }
 
-# Lines the section 14 greps must and must not report.
+# Lines the section 15 greps must and must not report.
 EMOJI_HITS = ["\u25b6 Play", "\u23f8 Pause", "reset \u21bb", "Next \u2192", "\u2605 4.8",
               "\u2713 Saved", "\U0001f680 Launch", "\u26a1 Fast", "\u2764\ufe0f", "\u2b50 star"]
 EMOJI_CLEAN = ["Delete report", "price \u20ac12,50", "a \u00d7 b", "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u04d9\u04e9\u04af"]
@@ -153,7 +190,7 @@ def check_budget(skill):
     return out
 
 
-def section14_patterns(gate_text):
+def fast_check_patterns(gate_text):
     """(emoji -P pattern, palette -iE pattern) from the grep lines under their comments."""
     emoji = palette = None
     comment = ""
@@ -190,12 +227,12 @@ def check_greps(root):
         return ["greps: quality/quality-gate.md is missing"]
     if shutil.which("grep") is None:
         return []  # nothing to run the patterns with; not a skill problem
-    emoji, palette = section14_patterns(read(gate))
+    emoji, palette = fast_check_patterns(read(gate))
     out = []
     for name, pat, flags, hits, clean in (("emoji", emoji, "P", EMOJI_HITS, EMOJI_CLEAN),
                                           ("palette", palette, "iE", PALETTE_HITS, PALETTE_CLEAN)):
         if pat is None:
-            out.append(f"greps: no {name} grep found in quality-gate.md section 14")
+            out.append(f"greps: no {name} grep found in quality-gate.md section 15")
             continue
         got = grep_lines(flags, pat, hits + clean)
         if got is None:
@@ -215,14 +252,108 @@ def check_agent(agent_path):
     return []
 
 
-def run_checks(root, pins=PINS, agent_path=AGENT):
+def km_blocks(text):
+    """{'KM1': block text, ...} for every '## KMn.' heading."""
+    out = {}
+    parts = re.split(r"^(?=## KM\d+\.)", text, flags=re.M)
+    for p in parts:
+        m = re.match(r"## (KM\d+)\.", p)
+        if m:
+            out[m.group(1)] = p
+    return out
+
+
+def check_mistakes(root, local_path=LOCAL_MISTAKES):
+    """(problems, warnings). Problems for malformed KM entries, warnings for local drift."""
+    lib = os.path.join(root, "quality", "mistakes-library.md")
+    if not os.path.exists(lib):
+        return ["mistakes: quality/mistakes-library.md is missing"], []
+    blocks = km_blocks(read(lib))
+    if not blocks:
+        return ["mistakes: quality/mistakes-library.md has no '## KMn.' entries"], []
+    problems = []
+    for km, block in blocks.items():
+        lines = [l.strip() for l in block.splitlines()]
+        for field in KM_FIELDS:
+            if not any(l.startswith(field) for l in lines):
+                problems.append(f"mistakes: {km} has no '{field}' line")
+    warnings = []
+    if local_path and os.path.exists(local_path):
+        local = set(re.findall(r"^## (M\d+)\.", read(local_path), re.M))
+        local |= set(re.findall(r"^- \*\*(M\d+)\.", read(local_path), re.M))
+        sources = " ".join(l for b in blocks.values() for l in b.splitlines() if l.strip().startswith("Source"))
+        for mid in sorted(local, key=lambda x: int(x[1:])):
+            if not re.search(rf"\b{mid}\b", sources):
+                warnings.append(f"WARNING mistakes: local {mid} in {local_path} has no KM entry naming it")
+    return problems, warnings
+
+
+def check_router(skill):
+    m = re.search(r"^## Read what you need.*?(?=^## )", skill, re.S | re.M)
+    if not m:
+        return ["router: SKILL.md has no 'Read what you need' table"]
+    bold = []
+    for line in m.group(0).splitlines():
+        cells = [c.strip() for c in line.strip().split("|")[1:-1]]
+        if len(cells) >= 3 and cells[0].startswith("`") and "**" in cells[-1]:
+            bold.append(cells[0])
+    if len(bold) > ROUTER_BOLD_MAX:
+        return [f"router: {len(bold)} bold must-read rows, over {ROUTER_BOLD_MAX}: {', '.join(bold)}"]
+    return []
+
+
+def check_reversed(root):
+    out = []
+    pats = [re.compile(p) for p in REVERSED]
+    for p in files(root, (".md",)):
+        for i, line in enumerate(read(p).splitlines(), 1):
+            for pat in pats:
+                if pat.search(line):
+                    out.append(f"reversed: {rel(root, p)}:{i} brings back a reversed rule ({pat.pattern})")
+    return out
+
+
+TABLE_GREP = re.compile(r"`[^`]*\bgrep\b[^`]*\\\|[^`]*`")
+
+
+def check_tablegrep(root):
+    out = []
+    for p in files(root, (".md",)):
+        for i, line in enumerate(read(p).splitlines(), 1):
+            if line.lstrip().startswith("|") and TABLE_GREP.search(line):
+                out.append(f"tablegrep: {rel(root, p)}:{i} has a grep with an escaped pipe in a table cell; "
+                           "use a character class or repeat -e")
+    return out
+
+
+def check_version(root, skill):
+    vpath = os.path.join(root, "VERSION")
+    if not os.path.exists(vpath):
+        return []
+    version = read(vpath).strip()
+    meta = re.search(r"^\s+version:\s*(\S+)", skill, re.M)
+    rpath = os.path.join(root, "RELEASES.md")
+    release = re.search(r"^## (\d+\.\d+\.\d+)", read(rpath), re.M) if os.path.exists(rpath) else None
+    found = {"VERSION": version, "SKILL.md metadata.version": meta and meta.group(1),
+             "RELEASES.md first heading": release and release.group(1)}
+    if len(set(found.values())) != 1:
+        return ["version: versions disagree: " + ", ".join(f"{k} {v}" for k, v in found.items())]
+    return []
+
+
+def run_checks(root, pins=PINS, agent_path=AGENT, local_path=None, warnings=None):
     skill_path = os.path.join(root, "SKILL.md")
     if not os.path.exists(skill_path):
         return ["paths: SKILL.md is missing"]
     skill = read(skill_path)
+    mistakes, warn = check_mistakes(root, local_path)
+    if warnings is not None:
+        warnings.extend(warn)
     return (check_paths(root, skill) + check_linked(root, skill) + check_scripts(root)
             + check_dashes(root) + check_pins(root, pins) + check_contents(root)
-            + check_budget(skill) + check_greps(root) + check_agent(agent_path))
+            + check_budget(skill) + check_greps(root) + check_agent(agent_path)
+            + mistakes + check_router(skill) + check_reversed(root) + check_tablegrep(root)
+            + check_version(root, skill))
 
 
 def selftest():
@@ -246,7 +377,13 @@ def selftest():
                 open(os.path.join(d, "scripts", s), "w").close()
             with open(os.path.join(d, "SKILL.md"), "w", encoding="utf-8") as f:
                 f.write("---\nname: t\ndescription: test skill\n---\n# t\n"
-                        "One primary action per view.\n| `quality/quality-gate.md` | gate |\n")
+                        "One primary action per view.\n\n## Read what you need\n\n"
+                        "| File | What | Read when |\n|---|---|---|\n"
+                        "| `quality/quality-gate.md` | gate | **before done** |\n"
+                        "| `quality/mistakes-library.md` | defects | **before writing** |\n\n## End\n")
+            with open(os.path.join(d, "quality", "mistakes-library.md"), "w", encoding="utf-8") as f:
+                f.write("# lib\n\n## KM1. Overflow\n\nLooked like: x\nCause: y\nRule: z\n"
+                        "Check: w\nStacks: s\nSource: user M1, 2026-10-18.\n")
             with open(os.path.join(d, "sources", "notes.md"), "w", encoding="utf-8") as f:
                 f.write("research with a dash \u2014 allowed here, never linked\n")
             return d
@@ -289,7 +426,7 @@ def selftest():
         d = build("greps")
         g = os.path.join(d, "quality", "quality-gate.md")
         text = read(g)
-        emoji, _ = section14_patterns(text)
+        emoji, _ = fast_check_patterns(text)
         write(d, "quality/quality-gate.md", text.replace(emoji, "[\\x{1F300}-\\x{1FAFF}\\x{2600}-\\x{27BF}]"))
         expect("old pictograph only emoji grep is caught", run_checks(d, pins, None), "greps")
 
@@ -297,6 +434,44 @@ def selftest():
         text = read(g := os.path.join(d, "quality", "quality-gate.md"))
         write(d, "quality/quality-gate.md", text.replace("667eea|764ba2|", ""))
         expect("palette grep without #667eea is caught", run_checks(d, pins, None), "greps")
+
+        d = build("km")
+        write(d, "quality/mistakes-library.md",
+              read(os.path.join(d, "quality", "mistakes-library.md")).replace("Check: w\n", ""))
+        expect("KM entry without a Check line is caught", run_checks(d, pins, None), "mistakes")
+
+        d = build("drift")
+        write(tmp, "local-mistakes.md", "# lib\n\n## M1. a\n\n## M2. b\n\n- **M3. c:** d\n")
+        warn = []
+        probs = run_checks(d, pins, None, os.path.join(tmp, "local-mistakes.md"), warn)
+        ok = not probs and any("M2" in w for w in warn) and any("M3" in w for w in warn) \
+            and not any(" M1 " in w for w in warn)
+        print(("PASS " if ok else "FAIL ") + "local id with no KM entry warns, does not fail"
+              + ("" if ok else f" -> {probs} {warn}"))
+        if not ok:
+            fails.append("drift")
+
+        d = build("router")
+        write(d, "SKILL.md", read(os.path.join(d, "SKILL.md")).replace(
+            "\n\n## End", "\n| `a/b.md` | x | **always** |\n| `c/d.md` | x | **always** |\n\n## End"))
+        expect("4 bold router rows are caught", run_checks(d, pins, None), "router")
+
+        d = build("reversed")
+        write(d, "quality/quality-gate.md", "\nFont px times characters times about 0.55 against the box.\n", "a")
+        expect("reversed 0.55 width factor is caught", run_checks(d, pins, None), "reversed")
+
+        d = build("tablegrep")
+        write(d, "quality/quality-gate.md", "\n| G7 | dashes | `grep -nP '\\x{2014}\\|\\x{2013}'` |\n", "a")
+        expect("grep with an escaped pipe in a table row is caught", run_checks(d, pins, None), "tablegrep")
+
+        d = build("version")
+        write(d, "VERSION", "1.2.0\n")
+        write(d, "RELEASES.md", "# r\n\n## 1.1.0 (2026-11-01)\n")
+        write(d, "SKILL.md", "| `RELEASES.md` | x |\n", "a")
+        write(d, "SKILL.md", read(os.path.join(d, "SKILL.md")).replace("---\n# t", "metadata:\n  version: 1.2.0\n---\n# t"))
+        expect("VERSION and RELEASES.md disagreeing is caught", run_checks(d, pins, None), "version")
+        write(d, "RELEASES.md", "# r\n\n## 1.2.0 (2026-11-02)\n")
+        expect("matching versions pass", run_checks(d, pins, None), None)
 
         agent = os.path.join(tmp, "agent.md")
         write(tmp, "agent.md", "Read some other skill.\n")
@@ -310,7 +485,10 @@ def main(argv):
     if "--selftest" in argv:
         return selftest()
     root = os.path.abspath(argv[0]) if argv else ROOT
-    problems = run_checks(root)
+    warnings = []
+    problems = run_checks(root, local_path=LOCAL_MISTAKES, warnings=warnings)
+    for w in warnings:
+        print(w)
     for p in problems:
         print(p)
     print(f"{len(problems)} problems" if problems else "check_skill: clean")

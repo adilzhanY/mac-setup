@@ -115,6 +115,8 @@ More rules:
 
 ## 7. Caching (version dependent)
 
+Choose the rendering model from the product before the first page, and record it in Decisions. A marketing or content site where only a form and an admin are dynamic: set `cacheComponents: false` and generate every public page statically; the admin and form actions run per request. Keep Cache Components (the `create-next-app` default) only when pages mix per request data with a static shell and the team wants it. Signs you picked wrong: `notFound()` returns a client error shell or status 200, unknown URLs need a proxy rewrite, the 404 page cannot know its language, per request lists stream in and need JavaScript, a hand kept list of static files in `proxy.ts`. When two of these appear, switch the model instead of adding workarounds (`ai-agents/verification-loop.md` section 3). Evidence (trial 2026-11-01): web-A kept Cache Components for a static site, then spent 24 tool calls and 3 commits on 404 workarounds and a `STATIC_FILES` allowlist; web-B turned it off and had none of these problems.
+
 Next.js caching has changed in every major release. Before writing caching code, check `next.config.*` for `cacheComponents` and read the docs for the installed version. As of Next.js 16 with Cache Components (the `create-next-app` default):
 
 - Nothing is cached unless you say so. `"use cache"` at the top of an async function or component caches its result; arguments and captured values form the cache key. Pair every `"use cache"` with `cacheLife(...)` and tag shared data with `cacheTag(...)`.
@@ -157,4 +159,5 @@ From the Next.js data security guide, look hardest at:
 - **Params validated.** Pass: values from `await params` pass a schema or explicit check before DB use. Verify: `rg -n 'await params' -t ts .` and read each.
 - **Proxy has a matcher and is not the only auth.** Pass: `config.matcher` present; actions still authorize. Verify: `rg -n 'matcher' proxy.ts middleware.ts src/proxy.ts 2>/dev/null`
 - **One caching model.** Pass: either `cacheComponents: true` with `"use cache"`, or the previous model, not both. Verify: `rg -n 'cacheComponents|use cache|export const (revalidate|dynamic)' -t ts .`
+- **Rendering model recorded.** Pass: Decisions names the model; `cacheComponents` in `next.config` matches it; no static file allowlist in `proxy.ts`. Verify: `rg -n 'cacheComponents' next.config.*`; `rg -n -i 'static_files|\.(png|svg|ico|txt)' proxy.ts src/proxy.ts 2>/dev/null`
 - **Middleware renamed on Next 16+.** Pass: no `middleware.ts` when `next` is 16 or newer. Verify: `ls middleware.ts src/middleware.ts 2>/dev/null`

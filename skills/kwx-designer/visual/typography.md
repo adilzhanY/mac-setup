@@ -53,6 +53,7 @@ Example scale at 16 px base, ratio 1.25: 12.8, 16, 20, 25, 31.25, 39, 48.8, 61. 
 
 Rules:
 
+- Size policy for apps (the same in SKILL.md rule 4 and gate D2): running text up to 24 px; key figures (tile values, totals, the running timer) 26 to 32 px bold tabular; one focal figure per view, the number the screen exists for, up to 44 px; mobile titles follow the platform (28 to 34); at most 6 sizes per view.
 - Use 5 to 8 sizes for a whole product, not 15. A landing page typically needs: caption 13 to 14, body 16 to 18, lead 20 to 22, h3 24, h2 32 to 40, h1 48 to 72 (desktop).
 - NN/g: within one view use no more than 3 size levels for content (small, medium, large), and at most 2 elements at the largest size.
 - Headings grow in small steps in long documents (Butterick: the smallest visible step), but marketing heroes need a big jump: hero h1 at 2.5x to 4x body size.
@@ -87,11 +88,19 @@ Line height shrinks as size grows.
 - Lowercase body: 0. Do not track body text.
 - Large display text (40 px and up): tighten, `-0.01em` to `-0.03em`. Most premium product sites (Linear, Stripe, Raycast, Notion) set hero text with negative tracking. Fonts with a display optical size already do this; do not double it.
 - All caps only for short labels under one line. Never all caps paragraphs or buttons with long labels (Duolingo's all caps buttons work only because labels are 2 to 4 words and tracked).
+- **The one rule for case:** field labels, table headers and buttons are sentence case; uppercase only for one or two word section eyebrows (sidebar group names, a page eyebrow), at the smallest size with +0.05 to +0.12em tracking (section 4). Other files point here.
+
+### Fit and ellipsis
+
+- Labels the product writes never elide. They wrap, get more room, or get shorter words.
+- Ellipsis only for user data (a file name, a song title, a customer name), with the full value in a tooltip.
+- Siblings of a label that may wrap never wrap: on the web `white-space: nowrap` plus `flex-shrink: 0` on the sibling; in React Native `flexShrink: 0` on the sibling and no `numberOfLines` on the label; in QML `Layout.fillWidth`, `wrapMode: Text.Wrap` and `elide: Text.ElideNone` on the label only. In the 2026-10 trial a wrapping "Kunden & Projekte" pushed its "Strg 4" key hint onto two lines (KM3).
+- The arithmetic (characters x px x 0.6, 0.65 for semibold and bold) is in `quality/predict-from-code.md` section 3.
 
 ## 5. Weights and emphasis
 
-- Use 2 to 3 weights per family: regular 400, medium 500 or semibold 600, bold 700. A hero may use one heavier display weight.
-- Never use weights below 400 under 20 px. Light text (300) at small size fails contrast in practice even when its colour passes.
+- Weights (SKILL.md rule 4, gate D8): body 400, labels and buttons 500 to 600, page titles 700, section headings 600 to 700, the focal figure 700 tabular; at most 3 weights. A page with nothing above 600 reads washed out.
+- No UI text below 400 at any size.
 - Bold or italic, never both on the same words. No underline except links.
 - De-emphasize to emphasize: make secondary text lighter in colour (step 11 of a Radix scale, or 60 to 70 percent contrast), not smaller and lighter and thinner at once.
 - Two-tone headline (Stripe pattern): first clause in full text colour, the rest of the sentence in a muted colour at the same size. This creates hierarchy without a second size.
@@ -107,7 +116,7 @@ Default: one excellent sans family for everything. Premium products rarely use m
   3. Give each face one job: display face for h1 and h2 only, text face for everything else. Never alternate per section.
   4. Shared history helps: old style serifs pair with humanist sans.
 - Test a pair by setting a headline and a paragraph together at real sizes, not by comparing specimens.
-- Check character coverage before choosing (Cyrillic, Kazakh letters like Ә Ғ Қ Ң Ө Ұ Ү Һ І, Turkish, Vietnamese). A missing glyph falls back to a different font mid word.
+- Check glyph coverage before picking a font: every letter of every language the product shows. For this user: Kazakh (Ә Ғ Қ Ң Ө Ұ Ү Һ І), Russian, German (ä ö ü ß), ₸ and №. Check the cmap or `fc-list ":charset=04d9" family`; a README or family name is not proof. Known gaps: Google Sans Flex has no Cyrillic, static Google Sans lacks the Kazakh letters, Caladea has no Cyrillic. A missing glyph falls back to a different font mid word (also Turkish and Vietnamese for other products).
 - Bad: a geometric display font with tiny x-height over a large x-height body font; 3 families on one page; a script font for UI.
 
 ## 7. Optical sizes and variable fonts
@@ -139,7 +148,11 @@ From Josh Comeau's pixels and accessibility study:
 - [ ] Body text 16 px or more, line height 1.4 to 1.6, line length 45 to 75 ch.
 - [ ] Every size comes from one scale; count distinct sizes in the CSS (8 or fewer).
 - [ ] Hero h1 is 2.5x to 4x body, negative tracking at display sizes, balanced wrapping.
-- [ ] All caps labels tracked +0.05 to +0.12 em.
+- [ ] Page title 700, headings 600 to 700, nothing below 400.
+- [ ] All caps labels tracked +0.05 to +0.12 em, and only on one or two word eyebrows; labels, headers and buttons in sentence case.
+- [ ] App sizes: running text 24 px or below, key figures 26 to 32 px, one focal figure up to 44 px, 6 sizes or fewer per view.
+- [ ] No label the product writes is elided; siblings of a wrapping label never wrap.
+- [ ] Every font covers every letter the product shows (cmap or fc-list checked, not the README).
 - [ ] Two families at most; each has one role; x-heights compatible.
 - [ ] Tabular numbers in prices and tables.
 - [ ] No text under 12 px anywhere; no weight under 400 below 20 px.

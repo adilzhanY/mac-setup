@@ -1,6 +1,6 @@
 # Design process
 
-The order to design anything new: brief, references, reference layout, system first, build, critique, polish. Each step has an output; do not start a step until the previous output exists. For an existing screen, use `redesign-method.md` instead.
+The order to design anything new: brief, references, reference layout (with directions when the look is open), system first, build, critique, polish. Each step has an output; do not start a step until the previous output exists. For an existing screen, use `redesign-method.md` instead.
 
 ## Contents
 
@@ -17,8 +17,9 @@ The order to design anything new: brief, references, reference layout, system fi
 
 ## 1. Brief
 
-Output: a short written brief (10 lines or fewer).
+Output: a short written brief (15 lines or fewer).
 
+0. **Day in the life** (5 lines): the 3 tasks the user repeats most, with how often, and the one question they open the product to answer. Each repeated task must be doable in one action with defaults, and the answer must be visible on the first screen (`patterns/daily-use.md`).
 1. **Who and what job**: the user, the task they came to do, how often.
 2. **Business goal**, as a measurable line. Example from Tim Gabe's workshop: "Ensure 80% of users experience the product's core value within their first two sessions."
 3. **Problems to solve**, as "How might we..." lines ("...surface the most valuable features early without overwhelming new users?").
@@ -27,13 +28,15 @@ Output: a short written brief (10 lines or fewer).
 6. **Constraints**: existing design system, brand colour, frameworks, accessibility needs.
 7. **Success test**: how we will know it works (task time, first win reached, fewer support tickets).
 
+For every house component you use, open its source and write down its real sizes, paddings, default props and the colours it paints (which icon size a disc picks, which fill a pill uses without its on-dark variant); predictions use these numbers, not the names in a design doc.
+
 If the user gave no brief, write one from the request and state your assumptions in one line each. Ask only when a wrong guess would waste the work.
 
-Write the user goal as one sentence and check the finished work against its purpose, not its letter: "send the digest as one message" is not done if the code still loops one email per subscriber. A vague request ("build me X") gets the smallest version that does that core job, built now, with the left out parts named. When a requested element has no job, say so in one line before building it.
+Write the user goal as one sentence and check the finished work against its purpose, not its letter: "send the digest as one message" is not done if the code still loops one email per subscriber. A vague request ("build me X") gets the smallest complete version: the core job with every daily question and move it implies, built now. The left out parts named are options and abstractions, never a daily workflow or information element. When a requested element has no job, say so in one line before building it.
 
 ## 2. References
 
-Output: 3 to 6 reference screens from real products, with one line each on what to take from it.
+Output: 3 to 6 reference screens from real products, with one line each on what to take from it, and what each shows on the equivalent screen (the facts and actions it puts in front of the user), so gate row J9 can compare your screen with them.
 
 1. Search a pattern library of real apps (Mobbin is the one every video recommends) by flow and screen type: "onboarding", "product page", "pricing", "bottom sheet", "filter and sort", "checkout".
 2. Study the **full journey**, not one screen: discover, detail, checkout, confirmation, saved items, tracking (uxpeak). What comes before and after this screen matters as much as the screen.
@@ -51,6 +54,12 @@ Output: a wireframe of content blocks in priority order, before any styling.
 4. Rank every action by frequency and importance and place it: always visible, visible icon, hover, menu.
 5. Mobile: one job per screen, one scroll direction per section, decide tab bar vs sidebar as home.
 6. Write down every state the screen needs (loading, empty first run, no results, error, offline, limit).
+
+### Show directions
+
+When the look or layout is not decided, or for a surface the user sees daily, build 2 to 4 named, genuinely different directions as small working prototypes in the medium the product runs in (Korme for QML, a lavish page for web). Each gets a one paragraph note and its open questions, and uses real data shapes. The user picks; build only the pick, and record the session and the pick in the project notes. In an unattended run pick one, say why in one line, and list the others.
+
+A preview may only use what the viewer's own entry loads. A harness that imports the extra module itself proves nothing (KM12): compare the idea's imports with the viewer's entry, and read the viewer's own log after opening.
 
 ## 4. System first
 
@@ -83,23 +92,26 @@ Output: a findings list. Follow `quality/critique-method.md`.
 
 ## 7. Polish
 
-Output: the gate report and score.
+Output: the gate report.
 
 1. Fix every finding, blockers first.
 2. Go beyond fixing: what would make the task itself easier? (Sticky action area, total in the button, presets from data, cross sell, the title moving into the nav.) "Strong product design is not just about fixing what is broken. It's about making the whole experience feel easier."
 3. Add micro interactions only where a result is otherwise invisible (copy, save).
 4. Spend the remaining effort on the worst moment (a failure), not the home screen: that is where premium is decided.
-5. Run `quality/quality-gate.md` and score with `quality/scoring-rubric.md`. Ship only above the minimum.
+5. Run `quality/quality-gate.md` in full. Ship on its line: no `[critical]` row fails and no open FAIL. The scoring rubric is not used for builds.
 
 ## 8. The whole process as a checklist
 
+Mirrors the workflow in SKILL.md.
+
 ```
-[ ] Brief written (job, goal, HMWs, platform, content range, constraints, success test)
-[ ] 3 to 6 references with what to take from each, full journey looked at
-[ ] Reference layout: blocks in order, forms per data, actions ranked, states listed
-[ ] Tokens defined or existing system loaded
-[ ] Built from shared components with real content and every state
-[ ] Critique done, findings listed
-[ ] Findings fixed, one "beyond fixing" improvement made
-[ ] Quality gate passed, score above minimum, report written
+[ ] 1 House first: local mistakes library in full, quality/mistakes-library.md, house/owner-house-style.md (this user), the project's design system, the source of each house component used
+[ ] 2 Brief: who, job, platform, what exists; day in the life (3 repeated tasks with frequency, the one daily question)
+[ ] 3 Job sized (tiny fix, one screen, new product) and its recipe in SKILL.md opened
+[ ] 4 3 to 6 references, what each shows on the equivalent screen (skip for a tiny fix)
+[ ] 5 System: tokens through one scale, or the existing system loaded
+[ ] 6 Structure: daily questions answered, one primary action, what is hidden until needed; directions shown when the look is open
+[ ] 7 Built: reuse first, real content and data shapes, every state
+[ ] 8 Predicted and critiqued: quality/predict-from-code.md arithmetic, each mistakes entry one line
+[ ] 9 Quality gate: every row run, criticals and FAILs written up, report written
 ```

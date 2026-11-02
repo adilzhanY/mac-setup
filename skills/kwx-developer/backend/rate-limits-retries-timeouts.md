@@ -181,11 +181,13 @@ Client side adaptive throttling (Google SRE): track `requests` and `accepts` ove
 |---|---|---|
 | Authenticated API | user ID or API key (never IP alone: NAT puts thousands of users behind one IP) | token bucket, for example 10 to 100 req/s sustained with a burst of 2x to 5x |
 | Unauthenticated public API | IP (or IPv6 /64 prefix) | lower, for example 1 to 10 req/s |
-| Login | account identifier AND IP, separately | per account: exponential backoff after failures, hard stop well under 100 consecutive failures (NIST SP 800-63B-4 caps at 100) |
+| Login | account identifier AND IP, separately | per client IP: a hard limit (for example 30 failures per 15 min), checked first. Per account: a growing delay (1 s, 2 s, 4 s, capped at 30 s), never a block that refuses the correct password from an unblocked IP (`auth.md` section 6). Any per account hard cap is 50 or more, with reset still working |
 | Password reset, magic link, OTP send, SMS, email | target address or phone AND IP | for example 3 to 5 per hour per target. Every SMS costs money; SMS pumping fraud targets these |
 | Signup | IP and device signals | for example 5 per hour per IP |
 | Expensive (search, export, report, LLM call, image processing) | user | concurrency limit (for example 2 to 5 in flight per user) plus a daily quota in cost units |
 | Webhook receivers | sender | usually unlimited but body size and signature checked first |
+
+Test the login row as `auth.md` section 6 says: 10 bad tries for one account from IP A, then the right password from IP B returns 200.
 
 Track per account failures, not only per IP, for login (OWASP): credential stuffing rotates IPs, and per IP limits alone do not stop password spraying across accounts.
 
@@ -202,7 +204,17 @@ Implementation rules:
 - Update atomically: a Lua script or `INCR` + `EXPIRE` in one `MULTI`, or a library (`rate-limiter-flexible` in Node, `governor` in Rust for in-process, Upstash Ratelimit on serverless).
 - Fail open on limiter errors for normal API limits (Stripe: a Redis outage must not take the API down), but fail closed for login, OTP and SMS limits, where an outage of the limiter would let an attacker through.
 - Dark launch new limits: log what would have been rejected for a week, then enforce (Stripe).
-- Get the client IP right: take it from the proxy header your platform sets (`X-Forwarded-For` rightmost untrusted hop, or `CF-Connecting-IP`), and only trust it when the request came through that proxy. Reading the leftmost `X-Forwarded-For` lets anyone pick their own IP (ASVS 4.1.3).
+- Get the client IP right, in one helper. Read the client IP only in `clientIp(request)`, driven by a setting such as `TRUST_PROXY_HOPS` (default 0). With 0, ignore `X-Forwarded-For` and `X-Real-IP` and use the socket address. When the framework gives no socket address (Next.js server actions), refuse to start in production without `TRUST_PROXY_HOPS` set, or key the limit on the account or form target as well, so a forged header cannot reset it. With N hops, take the Nth address from the right; the leftmost entry is whatever the client wrote (ASVS 4.1.3). A test sends a forged `X-Forwarded-For` and expects the same bucket. The README going live notes name the setting and the proxy config. Evidence (trial 2026-11-01): web-A trusted the last entry with no proxy in front, so any new value got a fresh bucket; web-B used the first entry and duplicated the helper in two files.
+
+  ```ts
+  // src/server/client-ip.ts: the only file that reads forwarding headers
+  export function clientIp(headers: Headers, socketIp: string | undefined): string {
+    const hops = config.TRUST_PROXY_HOPS; // 0 unless a known proxy sits in front
+    if (hops === 0) return socketIp ?? "unknown";
+    const chain = (headers.get("x-forwarded-for") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    return chain[chain.length - hops] ?? socketIp ?? "unknown";
+  }
+  ```
 
 ### Responses
 
@@ -284,6 +296,7 @@ function dedupedGet<T>(url: string): Promise<T> {
 | Auth routes limited | login, signup, reset, OTP/SMS routes pass through a limiter keyed by target and IP | `rg -n "login\|signin\|reset\|otp\|sms\|magic" ` in routes; confirm limiter middleware |
 | Limits keyed correctly | authenticated limits key on user/API key, not IP | read limiter key function |
 | Client IP trusted correctly | no `x-forwarded-for` split `[0]` without trusted proxy config | `rg -n "x-forwarded-for" -i` |
+| One client IP helper | the forwarding headers are read in one file; the forged header test exists | `rg -n -i x-forwarded-for src` shows one file |
 | 429 carries Retry-After | every 429 response sets `Retry-After` | `rg -n "429" ` and check header set |
 | Queues bounded | no unbounded in-memory arrays used as job queues; worker pools have max size | `rg -n "unbounded_channel\|new Array\(\)\.push" `; tokio `mpsc::channel(n)` used instead |
 | Search debounced and cancelled | input driven fetch uses debounce and AbortController or a query library | read search components |

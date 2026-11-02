@@ -139,3 +139,4 @@ Practical rules (Sara Soueidan, WCAG 2.4.13):
 - [ ] Zoom allowed; layout reflows at 320 px; text in rem.
 - [ ] Native elements, one h1, ordered headings, skip link, `lang` set.
 - [ ] Every image, icon button and badge has an accessible name.
+- [ ] The current nav link has `aria-current="page"` plus a visible non colour style; required inputs carry `required` or `aria-required` and the form states its convention once (gate I10).

@@ -2,6 +2,8 @@
 
 Premium products say less, use fewer things, and make each thing count. This file turns that into rules you can check.
 
+> **Read this first.** Restraint cuts decoration (gradients, icon discs, extra borders, motion), never information the user decides with (amounts, statuses, how a number is computed) and never a daily workflow. It is the default for marketing decoration, not for working screens: a tool used every day earns density (totals, rates, statuses in colour, labelled filters, visible shortcuts). When in doubt between a useful number and a calmer screen, show the number. Before removing an element, name the question it answered; if one exists, keep it and make it quieter.
+
 ## Contents
 
 1. The principle in the masters' words
@@ -49,10 +51,10 @@ Default limits. Break one only with a written reason.
 | Thing | Limit | Source |
 |---|---|---|
 | Typefaces in a product | 2 maximum, 1 is often better | Hobday rule 23; Vignelli did a career's work with 4 faces in total |
-| Font sizes visible in one view | 2 to 3 (body, heading, small) | Vignelli: "no more than two type sizes on a printed page"; heading about 2x body |
+| Font sizes visible in one view | Up to 6 per view in apps and sites (SKILL.md rule 4); the print rule of 2 to 3 applies to running documents | Vignelli: "no more than two type sizes on a printed page"; heading about 2x body |
 | Type scale for the whole product | 5 to 7 steps actually used | Refactoring UI defines 11 steps (12 to 72px) and uses a subset per screen |
 | Heading levels | 3 maximum, 2 is better | Butterick, headings |
-| Font weights in use | 2 to 3 (regular, medium or semibold, bold) | Rauno: no weights below 400; medium headings at 500 to 600 |
+| Font weights in use | 2 to 3; headings 700, body 400 | Rauno: no weights below 400; his medium headings at 500 to 600 apply to running text headings in documents |
 | Accent colours | 1 brand accent, plus semantic status colours | Liquid Glass: "When every element is tinted, nothing stands out" |
 | Primary buttons per view | 1 | Refactoring UI: one primary, a couple of secondary, few tertiary |
 | Depth techniques | 1 style throughout (soft shadow, or hard shadow, or flat with borders) | Hobday rule 27 |
@@ -82,7 +84,7 @@ Run this on any screen that feels busy.
 3. **Delete duplicates.** Two buttons that do the same thing, a label that repeats the heading, an icon that repeats the word next to it, a "Welcome to X" heading inside X.
 4. **Delete decoration with no job.** A gradient that does not separate anything, a divider between items that already have spacing, a card around content that is the only content.
 5. **Replace labels with format where the format is obvious.** Refactoring UI, "Labels are a last resort": an email address does not need "Email:" before it.
-6. **Replace borders with space or a background shift.** Refactoring UI, "Use fewer borders".
+6. **Replace borders with space or a background shift.** Refactoring UI, "Use fewer borders". Cards stay for parallel, clickable or one record items (SKILL.md rule 3).
 7. **Collapse rare options** into a "More" menu or a details disclosure.
 8. **Merge similar sizes and colours.** If two greys are 4% apart, use one. If two font sizes are 1px apart, use one.
 9. **Re-check the purpose sentence.** If the screen still does its job and feels calmer, you are done. If it now needs an extra step for a frequent task, restore that element.
@@ -121,7 +123,9 @@ Run this on any screen that feels busy.
 
 ## 10. When restraint goes wrong
 
-Restraint is not the same as removing contrast or information.
+Restraint is not the same as removing contrast or information. The box at the top of this file is the rule; the cases below are how it goes wrong.
+
+- **Sparse is not premium on a working screen.** In the 2026-10 trial the arm that followed this file most strictly shipped grey, sparse tools with fewer daily features, and the owner preferred the denser build. Totals, money beside hours, status chips in colour and labelled filters are information, not clutter.
 
 - **Too little contrast is not elegant, it is unreadable.** Hobday: high contrast for important elements, low contrast only for structure. Ultra light grey body text fails people.
 - **Hiding everything is not simple** (Apple WWDC26). If a frequent action needs two taps, restraint went too far.

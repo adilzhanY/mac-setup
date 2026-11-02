@@ -59,7 +59,7 @@ Run this after the feature works and before you call the UI finished. Do the ste
 2. **Pick the personality in three words** (for example: calm, precise, quiet; or warm, playful, quick). Every later choice (radius, easing, bounce, copy tone) must fit those words. Refactoring UI: small radii read neutral, large radii read playful. Emil: a playful component can bounce, a dashboard must be crisp.
 3. **Limit the palette of decisions before designing.** Max 2 typefaces (Hobday, Vignelli uses one per job). A type scale of 5 to 7 sizes used per product, 1 to 2 per view (Vignelli). A spacing scale on a 4 or 8 base. 8 to 10 greys tinted toward the brand hue. One accent colour, used for the one primary action.
 4. **Set the body text.** 16px minimum on screen (Butterick: 15 to 25px; Hobday: 16px+), line height 1.4 to 1.5 for body (Butterick 120 to 145%), measure 45 to 75 characters, target 66 (Bringhurst). Everything else is designed relative to this.
-5. **Build hierarchy by de-emphasis, not by shouting.** Make secondary things lighter, smaller and greyer before making the primary thing bigger. (Refactoring UI, "De-emphasize to emphasize".) Use weight and colour before size. Headings only a small step bigger than body (Butterick).
+5. **Build hierarchy by de-emphasis, not by shouting.** Make secondary things lighter in colour before making the primary thing bigger; never smaller than the floor. (Refactoring UI, "De-emphasize to emphasize".) Use weight and colour before size. In running documents, headings only a small step bigger than body (Butterick). In apps the jump from body to page title is at least 1.6x and on marketing heroes 2.5x, with titles at 700.
 6. **Align everything to something.** Every element shares an edge or a centre line with another (Hobday rule 8, Vercel). Then fix optics: nudge icons and play triangles by 1 to 2px until they *look* centred.
 7. **Nest every radius.** Inner radius = outer radius minus the padding between them. If the result is 0 or negative, use a small fixed radius (2 to 4px) or a square corner. Capsule = height / 2.
 8. **Design every state.** Rest, hover, pressed, focus-visible, disabled, loading, empty, error, overflow (very long text), sparse (one item), dense (500 items). A component with only a rest state is a mockup.
@@ -86,7 +86,7 @@ Use it as a checklist when reviewing finished UI. Each line is pass or fail. A p
 9. Line length 45 to 75 characters.
 10. Large text (about 24px+) has negative tracking; all caps and small labels have positive tracking (+0.05 to +0.12em).
 11. Numbers that are compared or that change (tables, timers, prices, counters) use tabular figures.
-12. No font weight under 400 for text; no weight change on hover or selection (it shifts layout).
+12. No font weight under 400 for text; no weight change on hover or selection (it shifts layout) (exception: the project's design system sets a current item weight, as Iris DemiBold does; then reserve the label's width so the row does not shift).
 13. Curly quotes and apostrophes, real ellipsis character, no double hyphen dashes.
 
 **Layout and details**

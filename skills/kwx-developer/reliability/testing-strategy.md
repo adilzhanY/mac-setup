@@ -210,6 +210,7 @@ Use Testing Library (`@testing-library/react`, `@testing-library/react-native`).
 - Use the ESLint plugins `eslint-plugin-testing-library` and `eslint-plugin-jest-dom`.
 - Do not test hooks in isolation when a component test covers them; test custom hooks directly only when they are a reusable library.
 - Mock network with MSW, not the data fetching hook.
+- Client only requirements are tested by the developer side with the feature, not left to the independent tester: an offline schedule from the persisted cache, a QR code shown without network, actions disabled offline with a message, a language switch on the sign in screen. At least one component test each. Balance by risk: when the server has ten times more tests than the app, list the app requirements without a test in the report. (Trial 2026-11-01: android-A had 128 server tests and 13 app tests, none rendering the offline UI; android-B rendered the QR offline in a jest test.)
 
 ## 10. Property based, snapshot, contract and mutation testing
 
@@ -278,4 +279,5 @@ Common causes and fixes (Fowler; Google):
 | Flaky tests tracked | Each quarantined test links an issue | `rg -n '@flaky|fixme|#\[ignore' tests src e2e` each with an issue URL |
 | Proptest regressions committed | Folder present in git when proptest is used | `git ls-files | rg proptest-regressions` |
 | Rust tests layout | Unit tests in `mod tests` with `#[cfg(test)]`, integration in `tests/` | `rg -n '#\[cfg\(test\)\]' src | wc -l`; `ls tests` |
+| Client requirements tested | each client only requirement has a render test; the report lists untested client requirements | `rg -n offline -g "*.test.tsx"` finds a render test |
 | Bug fixes have tests | Fix PRs include a test change | PR review; `git log --grep=fix --stat` shows test files touched |

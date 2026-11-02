@@ -71,7 +71,9 @@ Feature: comments on a post
 Done when: each line has a test that fails before and passes after; the checks loop is green.
 ```
 
-Ask one round of questions only when the answer changes the design: the data model (can comments be edited, deleted, nested?), the public API shape, or permissions. Use AskUserQuestion with concrete options and your recommendation first. Everything else, decide by the house convention and note the choice in the report.
+For a new product, add a "Daily use" block: the 5 tasks a daily user repeats and the operator's tasks (admin, export), each with an acceptance line about speed or defaults, for example "a manual entry needs project and duration only, the rest is prefilled", "the admin can delete an entry for a GDPR request", "the CSV shows labels, not codes", "the overview steps to last week and last month". The full list of defaults is in `workflow/new-project-from-brief.md` section 3. (Trial 2026-11-01: web-B's admin had session login, logout, throttling and per entry delete; web-A had Basic auth, no delete and codes in the CSV.)
+
+Ask one round of questions only when the answer changes the design: the data model (can comments be edited, deleted, nested?), the public API shape, or permissions. Use AskUserQuestion with concrete options and your recommendation first. Everything else, decide by the house convention and note the choice in the report. When the client cannot be reached, do not ask: decide by the house convention or the framework default and record it in the README (`workflow/new-project-from-brief.md` section 7).
 
 Check the spec against DECISIONS.md and open TODO items for the same area (`rg -n -i 'comment' DECISIONS.md TODO.md`). A conflict with an Accepted decision stops the work until the user decides.
 
@@ -191,6 +193,7 @@ A new OFF, MIX or ODD line in an area you touched means your code added a varian
 | Check | Pass condition | How to verify |
 |---|---|---|
 | Acceptance list before code | every item has a test or a terminal check | the spec block and the test names |
+| Daily use listed (new product) | the acceptance list has a Daily use block with the 5 daily tasks and the operator's tasks | read the spec |
 | Examples named | 2 example paths per kind of new file | the plan |
 | Data first | the migration exists and was applied before the API code depending on it | file timestamps, the scratch DB apply output |
 | Additive or expand and contract | no drop or rename used by currently deployed code | read the migration against the code in `git show HEAD` |

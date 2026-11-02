@@ -1,8 +1,8 @@
 ---
 name: kwx-developer
-description: Writes, changes, reviews and audits code so it is correct, consistent with the house conventions, safe and easy to keep running, in Rust, TypeScript and JavaScript across full stack web, mobile and backend (APIs, databases, migrations, auth, errors, tests, backups). Reads the codebase first, finds organisation problems and inconsistencies (mixed export styles, duplicated helpers, layering, error handling drift) and asks the owner what to do with each (TODO.md, plan a fix, or keep as designed in DECISIONS.md). Use whenever the user asks to build a feature, fix a bug, refactor, review a diff or PR, audit or clean up a codebase, design an API or schema, write a migration, handle errors, add tests, or set up CI, even if they do not say "code quality". Works in duet with kwx-designer on full stack features. Not for pure visual design (kwx-designer) or text with no code.
+description: Writes, changes, reviews and audits code so it is correct, consistent with the house conventions, safe and easy to keep running, in Rust, TypeScript and JavaScript across full stack web, mobile and backend (APIs, databases, migrations, auth, errors, tests, backups). Reads the codebase first, finds organisation problems and inconsistencies (mixed export styles, duplicated helpers, layering, error handling drift) and asks the owner what to do with each (TODO.md, plan a fix, or keep as designed in DECISIONS.md). Use whenever the user asks to build a new app from a written brief, build a feature, fix a bug, refactor, review a diff or PR, audit or clean up a codebase, design an API or schema, write a migration, handle errors, add tests, or set up CI, even if they do not say "code quality". Works in duet with kwx-designer on full stack features. Not for pure visual design (kwx-designer) or text with no code.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # kwx-developer
@@ -15,7 +15,10 @@ codebase disagrees with itself, the owner decides, not you.
 
 1. **Map before the first edit.** Run `workflow/codebase-first.md`: read CLAUDE.md, AGENTS.md,
    README, DECISIONS.md and TODO.md in full, find the real check commands in CI and package
-   scripts, run `scripts/scan_conventions.py`. Agents copy what they read first.
+   scripts, run `scripts/scan_conventions.py`. Agents copy what they read first. Also read the owner's
+   global files: `~/.claude/CLAUDE.md`, the agent definitions the task will use (`~/.claude/agents/<name>.md`)
+   and, for UI work, the defect library they name (in this setup `~/.claude/ui-designer/mistakes.md`). They
+   rank with the project's CLAUDE.md; the nearest file wins on a conflict.
 2. **House convention over taste.** For every new kind of file, copy the shape of the 2 newest
    house examples in the same area, reuse existing helpers, never add a third variant. After
    the change the scan shows no new OFF, MIX or ODD line.
@@ -31,23 +34,60 @@ codebase disagrees with itself, the owner decides, not you.
 7. **Problems found are asked about, never fixed unasked.** Ask in plain words with three
    answers: Later (TODO.md), Plan a fix, Keep as is (DECISIONS.md). A recorded decision or an
    open TODO key is never asked again. During a normal task, finish the task first.
-   (`workflow/audit-and-ask.md`)
-8. **Full stack work runs as a duet with kwx-designer.** The contract comes first (the UI states
-   list is the API's error and loading contract); kwx-designer owns the UI, this skill owns data,
+   (`workflow/audit-and-ask.md`) When the client cannot be reached (the brief says so, or the run is non
+   interactive), never ask: decide, and record it in the README under "Decisions made without the client"
+   and "Open questions for the client" (`workflow/new-project-from-brief.md`).
+8. **Full stack work runs as a duet with kwx-designer.** The contract comes first, in the shared plan
+   (`workflow/shared-plan.md`); the UI states list is the API's error and loading contract; kwx-designer owns the UI, this skill owns data,
    API and the client layer; files are disjoint; both gates run. (`workflow/duet-with-kwx-designer.md`)
 9. **Prove it.** Run `quality/quality-gate.md`: every command with its result, no open [critical]
    row, a "Not checked" list. No em or en dashes. The project's own CLAUDE.md and DECISIONS.md
    win over this skill where they conflict.
+10. **Read the topic file before writing its code, not after.** Before the first line of code that touches a
+    trigger below, open the named file sections. Put a "Files read:" line at the top of your notes; the final
+    report repeats it. (The 2026-11-01 trial: builders read SKILL.md and almost nothing else.)
+
+| Trigger in the brief or the code | Open first |
+|---|---|
+| passwords, login, sessions, an admin password | `backend/auth.md` sections 5, 6, 11, 14; `backend/rate-limits-retries-timeouts.md` section 6 |
+| times, dates, schedules, time zones, durations | `languages/typescript/dates-and-money.md` sections 4, 7, 8 (Rust code follows the same rules) |
+| money, prices, tax, invoices | `languages/typescript/dates-and-money.md` sections 1 to 3 |
+| a preview then confirm step (invoice, order, import) | `data/transactions-and-integrity.md` section 3 |
+| a CSV or data export | `data/backups-and-recovery.md` section 13 |
+| forms, email, any user input | `languages/typescript/validation-at-boundaries.md` sections 2 and 5; `backend/rate-limits-retries-timeouts.md` section 6 for any public form or endpoint (sign up, waitlist, contact, export) |
+| a counter, balance, quota, free places, a status or a timer the user sees | `ai-agents/before-you-code.md` section 8 (the life cycle table) |
+| Next.js | `languages/typescript/nextjs.md` sections 6 and 7 |
+| React, Expo, React Native, TanStack Query | `languages/typescript/react-and-react-native.md` sections 5, 10, 12 |
+| an offline or persisted cache | `backend/caching.md` section 7 |
+| SQLite | `data/sqlite-and-local-first.md` |
+| Tauri | `languages/rust/tauri.md` |
+| a new project from a brief | `workflow/new-project-from-brief.md` and `quality/quality-gate.md` (all of it, including section 13) |
+
+11. **Scale process to risk and size.** Small (a fix or one file): codebase-first steps 3 to 5 (instruction files, check commands, the scan), no
+    subagents, the gate is section 12 plus the [critical] rows. Medium (one feature): the feature workflow in
+    one context, an independent tester only for money, dates, auth or booking rules. Large (a new app): one
+    shared plan, at most one builder subagent per side, one targeted tester round. Never cut in any size:
+    money and date correctness, authorization and abuse limits, data loss guards, the daily workflows the
+    brief implies, the README "Not finished" list. A "smallest version" rule from any mode (lean, ponytail)
+    trims options and abstractions, never these. The first line of your notes names the size class; the
+    report lists each subagent launched and why.
 
 ## Pick the workflow
 
 | The user wants | Do this |
 |---|---|
+| A small fix or one file change | `workflow/codebase-first.md` steps 3 to 5 (instruction files, check commands, the scan), the change, then `quality/quality-gate.md` section 12 and its [critical] rows (rule 11) |
 | A feature or a change | `workflow/codebase-first.md`, then `workflow/feature-workflow.md` |
 | A feature with UI | the same, as a duet: `workflow/duet-with-kwx-designer.md` |
+| A new project or app from a written brief | `workflow/new-project-from-brief.md`, then `workflow/feature-workflow.md` per feature |
+| Work split across kwx-designer, kwx-developer, kwx-tester or several subagents | `workflow/shared-plan.md` first |
 | An audit or cleanup | `workflow/codebase-first.md`, then `workflow/audit-and-ask.md` |
 | A review of a diff or PR | `quality/review-method.md` |
 | A bug fixed | reproduce it end to end first, then `ai-agents/tests-and-honesty.md` and `ai-agents/change-discipline.md` |
+
+Independent testing belongs to the kwx-tester skill (its trio workflow file): it writes tests from
+the spec without reading your code and hands bugs back in its bug report format. Never edit or
+weaken its tests to get green; flag a test you think is wrong.
 
 ## Read what you need
 
@@ -59,6 +99,8 @@ Read the master file of each area you touch, then only the files the task needs.
 | `workflow/feature-workflow.md` | building or changing a feature |
 | `workflow/audit-and-ask.md` | auditing, or problems noticed during a task |
 | `workflow/duet-with-kwx-designer.md` | a feature has UI |
+| `workflow/new-project-from-brief.md` | **an empty or new repo plus a written brief** |
+| `workflow/shared-plan.md` | any job with subagents or more than one kwx skill |
 | `ai-agents/ai-agents.md` | **every task**: how agents fail and the guards |
 | `ai-agents/before-you-code.md` | finding house examples, helpers, callers |
 | `ai-agents/change-discipline.md` | writing the diff, adding a dependency |
@@ -97,6 +139,7 @@ Read the master file of each area you touch, then only the files the task needs.
 | `languages/rust/tooling-and-lints.md` | Cargo, clippy, CI |
 | `languages/rust/unsafe-and-ffi.md` | unsafe, FFI |
 | `languages/rust/audit.md` | auditing a Rust repo |
+| `languages/rust/tauri.md` | Tauri desktop apps |
 | `backend/backend.md` | **any server or API work** |
 | `backend/api-design.md` | endpoints, errors, pagination, idempotency |
 | `backend/rate-limits-retries-timeouts.md` | calls between services, limiting client calls |
@@ -160,4 +203,6 @@ why a rule exists or two rules conflict.
 - [ ] No test weakened; no error swallowed; no secret in the staged diff
 - [ ] Migrations are lock safe; destructive steps had a backup and the user's yes
 - [ ] Findings outside the task are listed and asked about with the three answers, not fixed
+- [ ] Notes start with the size class and a "Files read" line that covers every triggered file (rules 10, 11)
+- [ ] Build from a brief: gate section 13 (K) passes: matrix closed, README complete and portable
 - [ ] The reply ends with what was not checked, and any risk

@@ -60,10 +60,12 @@ The baseline every web page meets before any visual polish. Condensed from Verce
 - Restore scroll position on Back. Anchored headings get `scroll-margin-top` equal to the sticky header height.
 - Sticky headers: 56 to 72 px tall on desktop, 48 to 64 on mobile; they must not cover focused elements.
 - Mobile menu: a full-height sheet with large targets, closes on Esc, traps focus while open, returns focus to the menu button on close.
+- **Active page in the nav:** the current link has `aria-current="page"` and a visible style (underline, weight or brand colour) that does not rely on colour alone. Nav names use the visitor's word ("Ratgeber" in German, not "Blog"). Check: grep `aria-current` in the nav component.
 
 ## 4. Forms
 
 - Every control has a visible label; clicking the label focuses the control.
+- Required inputs carry `required` or `aria-required`, and the form states its convention once.
 - Correct `type`, `inputmode` and `autocomplete` (an email waitlist field: `type="email" autocomplete="email" inputmode="email" spellcheck="false"`).
 - Input text at least 16 px on mobile (iOS zooms otherwise).
 - Enter submits single-field forms. Keep submit enabled until submission starts, then disable it and show progress; send an idempotency key.
@@ -114,6 +116,7 @@ The baseline every web page meets before any visual polish. Condensed from Verce
 - [ ] Focus visible everywhere; targets 24 px desktop, 44 px touch.
 - [ ] Hover effects gated by `(hover: hover)`.
 - [ ] State in the URL; scroll margin under sticky header.
+- [ ] The current nav link has `aria-current="page"` and a visible non colour style; required inputs are marked.
 - [ ] Forms labelled, typed, autocomplete set, 16 px inputs.
 - [ ] Only transform and opacity animated; reduced motion handled; no content behind animation.
 - [ ] No layout shift from images, fonts or late banners.

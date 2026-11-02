@@ -137,6 +137,7 @@ When a hot key expires, every concurrent request misses and hits the database at
 - On logout, clear the query cache and any persisted cache (`queryClient.clear()`), or the next user on the device sees the previous user's data.
 - Do not persist personal data to `localStorage` caches by default; it survives logout and is readable by any XSS.
 - Service worker caches: never cache authenticated API responses or HTML containing user data with a cache-first strategy.
+- A persisted offline cache that must outlive 24.8 days sets the query `gcTime: Infinity` and puts the lifetime on the persister (`maxAge`); larger timer values overflow and fire at once (`languages/typescript/react-and-react-native.md` section 5).
 
 ## 8. Checks
 

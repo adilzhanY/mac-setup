@@ -48,11 +48,11 @@ Numbers marked (est.) were read off video frames, not stated.
 ## 4. List rows
 
 1. Columns: identity left (title plus a grey secondary line), date centre, the key metric right, overflow menu far right. LinkGuard row after the redesign: white monospace short URL with a small check icon (was a "Verified Safe" chip) and a copy icon (was a "Copy" chip), destination URL in grey below, date centred, "green dot 27 clicks" on the right, vertical three dot menu.
-2. At most one or two visible actions per row. Collapse the rest (Analytics, QR Code, Delete) into the three dot menu.
+2. Row actions that are rare or change data (Archivieren, Stornieren, Löschen) are text buttons or sit in a labelled menu. With 2 or 3 actions per row show quiet text buttons; use an overflow menu at 4 or more (LinkGuard collapsed Analytics, QR Code, Delete into the three dot menu). Icon only only for universal frequent glyphs (close, search, more, plus, a pencil in a dense table), with `aria-label` and a tooltip.
 3. Collapse text chips into icon only affordances beside the item, each with a tooltip.
 4. Data text stays neutral. The short URL was brand green; it became white. Accent only for actions and live states (the small green dot).
 5. A list header can carry a count: "2 Active Links" with the number large and the label small grey.
-6. Secondary destructive actions in tight space appear on hover (a small "x" with tooltip "Delete").
+6. In tight space a hover may reveal a ... menu trigger; Delete sits inside it and takes a second step (a named confirm or an undo window). Nothing destructive appears under the resting cursor (KM7).
 
 ## 5. Primary actions and buttons
 
@@ -83,7 +83,7 @@ Numbers marked (est.) were read off video frames, not stated.
 
 1. Title "Settings", tabs Usage / Billing / Account (active tab a small grey pill). Tabs scale: Documents, Integrations, AI Credits later become another tab, not a longer page.
 2. Usage tab: two columns. Left: "Usage" heading, grey helper "Upgrade for higher limits and more features", a small dark "Upgrade" button, "Plan: Free". Right: hairline separated rows, each with a tiny progress donut, label, and "used / limit" right aligned (Links Used 2/25, Custom Domains 0/0, Team Members 1/1 as a full ring, Analytics 7 days).
-3. Do not use a grid of KPI tiles for usage ("These KPIs are very vibe cody and lame").
+3. Do not use a grid of decorative or repeated KPI tiles for usage ("These KPIs are very vibe cody and lame"); 2 to 4 figures the user acts on are right (`patterns/data-dense-tools.md` section 3).
 4. Billing tab: billing email input with Save, payment method "Visa ending in 0000, expires 04/28" with "Add card", side by side above Plans.
 5. Plans: 3 to 4 equal neutral cards, small plan name, big price, struck original price if discounted, one quota line, one shared feature list (checked vs dimmed), muted buttons ("Current Plan" disabled, "Upgrade to Team").
 6. Delete cards that do nothing. "Choosing the Right Plan", an explainer with two text columns and no action: "this card doesn't do anything. And that's a pattern you're going to see a lot with AI, so it can go."
@@ -96,7 +96,7 @@ Numbers marked (est.) were read off video frames, not stated.
 3. Below: Top Locations (country code badges, a bar, count) and Top Devices (donut).
 4. Row of three cards: Devices gauge with legend, Sources with real brand logos (Instagram, Facebook, Direct, Dribbble, X, Pinterest), Browsers with logos (Chrome, Safari, Firefox, Opera, Edge, Other). The logos supply the colour.
 5. Demographics: country table with flags on the left, shaded map on the right.
-6. Toss KPI tiles and tabs that duplicate the charts. Add the low hanging features (comparison toggle, per card period and export).
+6. Toss KPI tiles and tabs that duplicate the charts; do not use a grid of decorative or repeated KPI tiles, while 2 to 4 figures the user acts on are right (`patterns/data-dense-tools.md` section 3). Add the low hanging features (comparison toggle, per card period and export).
 
 ## 10. Announcements and onboarding in the shell
 
@@ -110,8 +110,8 @@ Numbers marked (est.) were read off video frames, not stated.
 | Sidebar is navigation | No metrics or stat widgets in the sidebar component | Read the sidebar component tree |
 | Account row | No gradient letter avatar; one account row opens a popover with Billing, Settings, Sign Out | `grep -niE "gradient" ` near avatar; find the account popover |
 | Real page titles | Every route renders a title element | Each page has an h1 or title component |
-| Row actions | At most two visible actions per list row, the rest in a menu | Count buttons in the row component |
-| One accent fill per view | Only one primary variant button rendered per screen | Count `variant="primary"` (or the accent class) per route |
+| Row actions | 2 or 3 actions per row as quiet text buttons, an overflow menu at 4 or more; destructive never revealed by hover | Count buttons in the row component; trace every hover revealed control to a non destructive handler (gate A6, A13) |
+| One filled primary per area | Only one primary variant button rendered per area | Count primary variant buttons per area (toolbar, card, dialog footer), not per route |
 | Modal layout | Creation forms with 4+ fields use a grid; advanced options collapsed | Read the modal's layout and initial collapsed state |
 | No dead cards | Every card has an action or real data | List cards; each has a handler or a data binding |
 | Settings in tabs | Settings sections are tabs, not one long page | Read the settings route structure |

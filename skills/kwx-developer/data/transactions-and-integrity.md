@@ -76,6 +76,12 @@ Fixes, in order of preference:
    ```
    Send the version to the client with the form (or use an ETag and `If-Match`, answer 412 on mismatch).
 4. **SERIALIZABLE** with retry, when the read set is complex.
+5. **Preview then commit** (invoice preview then issue, order summary then pay, import preview then apply): the preview response includes a hash or version of its inputs and totals (for example sha256 of entry ids, their durations and the net total). The commit sends it back, recomputes inside the same IMMEDIATE transaction (SQLite) or row locked transaction, and refuses with a `stale_preview` code when it differs, so the user sees the new preview. Test: change one entry between preview and issue; issue fails and no number is used. (Trial 2026-11-01: desktop-A issued without re-checking the confirmed total; desktop-B had a stale total guard.)
+   ```ts
+   const preview = buildInvoice(entries);                      // the same function the commit uses
+   return { ...preview, previewHash: sha256(JSON.stringify([preview.entryIds, preview.seconds, preview.netMinor])) };
+   // issue: BEGIN IMMEDIATE; rebuild; if hash differs -> rollback, 409 { code: "stale_preview" }; else take the number and insert
+   ```
 
 ## 4. Retrying transactions
 
@@ -181,4 +187,5 @@ Rules (from Brandur, used at Stripe):
 | Webhook dedupe | unique on event id | `grep -rniE "event_id\|webhook" migrations/` |
 | Jobs enqueued transactionally | enqueue uses the same tx | read enqueue call sites near writes |
 | Session timeouts set | `idle_in_transaction_session_timeout` > 0 | `show idle_in_transaction_session_timeout;` |
+| Preview guarded | the commit handler recomputes and compares the preview hash; a test changes an entry between preview and commit | `rg -n "stale_preview\|preview_hash\|previewHash"` in the commit handler |
 | Concurrency test | two parallel requests produce the right final state | a test that fires the same endpoint N times with `Promise.all` and asserts the count/balance |

@@ -133,7 +133,7 @@ Calm the CTA, put its inputs next to it, show the consequence inside it.
 
 - Before: full width neon "ADD TO CART", stepper far away without a unit.
 - After: "- 3 kg +" beside "Add to cart · $18.60", sentence case, muted brand colour.
-- Kole Jain: one bright accent fill per view; header actions dark neutral; modal CTA bottom right sized to its label.
+- Kole Jain: one filled primary per area, other header actions quiet (SKILL.md rule 2); modal CTA bottom right sized to its label.
 
 ### 16. Go beyond fixes
 
@@ -150,7 +150,7 @@ Structure, persistence, shortcuts, cross sell. Make the task easier.
 
 1. States pass: loading, empty, error, offline, limit for every screen touched (`patterns/states-feedback-and-failure.md`).
 2. Consistency pass: the redesigned screen next to the untouched ones. Either bring the others along or keep the shared parts identical.
-3. Run `quality/quality-gate.md` and `quality/scoring-rubric.md`.
+3. Run `quality/quality-gate.md` on the result, and score the before and the after with `quality/scoring-rubric.md` (the audit compares the two).
 4. Show before and after side by side with the numbered list of changes, and one counted line when code was replaced ("2 dependencies and 140 lines became 1 house component and 30 lines").
 
 ## 4. Redesign log format

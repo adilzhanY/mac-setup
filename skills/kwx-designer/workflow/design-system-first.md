@@ -6,6 +6,7 @@ Numbers come from Kole Jain (every UI concept, mobile UI, dashboard flaws) and u
 
 ## Contents
 
+0. Design source
 1. Colour: one brand colour to an 11 step ramp
 2. Neutrals, semantic colours, dark mode
 3. Type: one font, a capped scale
@@ -19,6 +20,16 @@ Numbers come from Kole Jain (every UI concept, mobile UI, dashboard flaws) and u
 11. Checks
 
 ---
+
+## 0. Design source
+
+Pick the source of the look in strict order:
+
+1. A look the user named ("like Linear", "Iris", a reference screenshot).
+2. The design system of the project: its token file, its component library, and for the user's shell ~/.config/quickshell/ii/IRIS.md and modules/iris/README.md.
+3. Only if both are empty, a neutral default built with the rest of this file.
+
+Reuse the library's part before drawing a new one. The report has a `Design source:` line naming which of the three was used.
 
 ## 1. Colour: one brand colour to an 11 step ramp
 
@@ -52,14 +63,17 @@ Numbers come from Kole Jain (every UI concept, mobile UI, dashboard flaws) and u
 | Context | Sizes (px) |
 |---|---|
 | Marketing site, 6 sizes maximum | 64, 42, 32, 20, 16, 14 |
-| Dashboard, nothing above about 24 | 24, 20, 18, 16, 14, 12 |
-| Mobile | Body at the platform base: 17 on iOS (macOS base is 13); never smaller than desktop |
+| App and dashboard running text, nothing above 24 | 24, 20, 18, 16, 14, 12; key figures (tile values, totals, a running timer) 26 to 32 bold tabular; one focal figure per view up to 44 |
+| Mobile | Body at the platform base: 17 on iOS (macOS base is 13); never smaller than desktop; titles follow the platform (28 to 34) |
+
+At most 6 sizes per view in any context (SKILL.md rule 4).
 
 3. Line heights: hero heading 64/72, subtext 20/28, eyebrow pill 16/20; sidebar label 15/24. Display text 110% to 120%; body about 150% to 160%.
 4. Letter spacing: display text -2% to -3%; small uppercase labels positive (about +4% to +8%).
-5. Weights: 3 at most (regular, medium, semibold or bold). The strawberry title went from a very heavy black weight to medium.
+5. Weights: 3 at most. Page titles 700, section headings 600 to 700, body 400, nothing below 400. (The strawberry title went from a very heavy black weight down; the trial's skills arm overcorrected to 600 at most and its screens read washed out.)
 6. Tabular figures for numbers in tables and prices.
 7. Never write a literal size in a component; every size comes from the scale.
+8. **One scale multiplier.** Fonts come from type tokens, and every dimension, padding, gap and radius goes through one scale value (`UiScale.px(40)` in QML, rem or `calc(40px * var(--scale))` on web, a scale constant in React Native) or a named metric, so one number grows text and boxes together. Never a literal font size, never a bare px dimension. Never scale values that must match something outside the UI: a compositor gap, a screen corner radius, a comparison against hardware pixels, a pill sentinel radius. To resize the whole UI, change the scale only.
 
 ## 4. Spacing: the 4 point system
 
@@ -166,7 +180,9 @@ Adapt names to the project's conventions. Values are a neutral starting point, n
 | 11 step ramp | Brand ramp has 50 to 950 | Read the ramp |
 | Neutrals tinted | Background hue matches the brand hue | Compare hue values |
 | One family | One sans token (plus optional mono) | Read font tokens |
-| Scale capped | Dashboard max 24; marketing 6 sizes | Count size tokens per context |
+| Scale capped | Running text max 24, key figures 26 to 32, one focal figure up to 44; 6 sizes per view | Count size tokens per context |
+| Sizes scale together | Every measurement goes through the scale function or a named metric (gate C12) | the C12 grep in `quality/quality-gate.md` section 15; each hit 0, 1 hairline, or a listed exception |
+| Design source | The report names the source, and library parts were reused | Read the report and the imports |
 | 4 pt | All spacing tokens multiples of 4 | Read the spacing scale |
 | Shadow tiers | Card shadow weaker than popover weaker than modal | Compare tokens |
 | States defined | Every component in section 8 has all its states | Read component variants |

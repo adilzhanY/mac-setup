@@ -53,7 +53,20 @@ Use the project's commands from CI or the instruction file first (`before-you-co
 - **A check that passes on the first run after a big change deserves a second look**: confirm it actually ran your files (test count went up, the file is in the output).
 - **Keep the green run's output** for the report: the command, the counts, the exit code.
 - **Do not loop on the same failure.** After two failed attempts at a general fix, stop and report (`tests-and-honesty.md` section 1). More retries against the same visible tests raised cheating, not quality.
+- **Timebox framework fights.** When the same framework behaviour (routing, 404, caching, build config, bundler) still fails after the two attempts above (or 30 minutes), stop editing the project. Write the exact symptom in the notes, build a minimal reproduction in a scratch copy (a fresh scaffold plus the one setting), and read the installed version's docs in `node_modules`. Then take the framework's documented default path (turn the opt in feature off, use the standard file convention) and record the trade off in Decisions. Never keep stacking workarounds in the real project. The UI agent in a duet never runs framework experiments; it hands the symptom to the developer side. (Both rules stop at two attempts; this one adds the scratch reproduction and the default path for framework behaviour.) Evidence (trial 2026-11-01): web-A toggled `cacheComponents` across 6 scratch builds and made 3 more 404 commits; about 1h44 of its reported 2 hours was a harness stall, so the real cost was the commits and their side effects.
 - **Pre-existing failures**: prove they fail on the base branch (`git stash; <cmd>; git stash pop`), report them, leave them alone unless asked.
+
+### Spend verification where defects live
+
+Budget order:
+
+1. Money, dates, time zones.
+2. Authorization and brute force.
+3. Data loss (restore, backup, migrations).
+4. UI states, including requirements that live only in the client (`reliability/testing-strategy.md` section 9).
+5. Extra example tests.
+
+Stop adding example tests for a function once a property or differential test covers its input range. The report gives the test count per category. Evidence (trial 2026-11-01): the evaluator's probes found real differences only in categories 1 to 3; 223 unit tests against 52 changed no probe result on a tax engine both arms got right.
 
 ## 4. Enforce it: hooks and CI
 
@@ -176,3 +189,5 @@ Not verified: the visual layer (layout, styling, focus and hover states, respons
 | Review | fresh-context review done, findings triaged | the review findings and what was done with each |
 | Unrun checks | each listed with reason, substitute and risk | the "Not run" block in the report |
 | Visual layer | marked unverified when no browser was used, with steps for the user | the report's "Not verified" line |
+| Framework fights timeboxed | the notes show at most two attempts per blocker in the project, then a scratch reproduction path and a Decisions entry when the default path was taken | read the notes |
+| Tests by risk | the report lists test counts per budget category | read the report |

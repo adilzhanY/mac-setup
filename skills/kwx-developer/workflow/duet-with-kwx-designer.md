@@ -27,6 +27,7 @@ How kwx-developer and its sister skill kwx-designer split a feature that has bot
 | Client data layer: API calls, hooks, cache, retries | kwx-developer | `src/api/**`, `src/hooks/use<Data>.ts` |
 | Error codes and their mapping to states | both: developer defines the codes, designer writes the copy per code | `src/api/errors.ts` (codes), `src/copy/errors.ts` or the screen (text) |
 | Wiring: route registration, flags, persistence | kwx-developer | router file, flag list, settings store |
+| Framework and build config: next.config, proxy.ts, tsconfig, bundler and build scripts, package.json | kwx-developer | the UI side reports problems there, never edits them |
 | Navigation entry, menu item | kwx-designer (the placement), kwx-developer (the registration) | split per file in the brief |
 | Tests | kwx-developer for logic, API, client and contract; kwx-designer for component state rendering where the repo tests components | `*.test.ts` |
 | Code organisation, conventions, the final gate run | kwx-developer | scan, findings, the joint gate |
@@ -81,7 +82,8 @@ Rules for the contract:
 2. Every error code in Part 2 maps to a state in Part 1. An error with no state is a failure users see as a frozen or blank screen.
 3. Shared limits and enums are defined once in code and imported by both sides (`COMMENT_MAX`), never typed twice.
 4. Time travels as ISO 8601 UTC strings; money as integer minor units plus a currency; ids as strings. The UI formats them.
-5. The contract lives in the conversation and in the types file. It is not a new markdown file in the repo.
+5. The contract lives in the shared PLAN.md (`workflow/shared-plan.md`, sections 4 and 5) and in the types file. It is not a new markdown file in the repo.
+6. The states list names every value a screen displays, including derived values and content fields (amount per entry and per period, days overdue, a course description, a location, a type for colour coding, the last used project). The developer adds each to the API shapes up front, and derived money is computed once on the server; the UI never recomputes money. (Trial 2026-11-01: android-A's contract had no course description, so its detail screen could not show one; desktop-B returned money per row and per period.)
 
 ## 3. The order of work
 
@@ -105,6 +107,7 @@ The developer's first deliverable is small and blocks the designer: the types fi
 5. **No installs during the parallel phase.** A new dependency is requested from the main agent, which installs it between phases, after asking the user (`ai-agents/change-discipline.md` section 4).
 6. **Neither agent commits.** The main agent commits after the joint gate, when the user or the project's rules say so.
 7. **Live reloading apps** (the Quickshell shell, a dev server watched by the user): follow the project's lock rule for saves; in this user's setup the main agent names the lock in the briefs.
+8. **Non interactive runs (`claude -p`):** background subagents are killed about 10 minutes after the main agent's last turn unless `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` is raised. In that mode run duet subagents in the foreground or wait for them before ending a turn, and read a subagent's last state before spawning a second one to finish its work.
 
 ## 5. The two briefs
 
@@ -115,6 +118,7 @@ Load the kwx-developer skill (~/.claude/skills/kwx-developer/SKILL.md) and follo
 Repo: <path>. Project map: <paste the map>.
 Feature: <one line>. Acceptance list: <paste>.
 Contract: <paste parts 1, 2, 3>.
+Shared plan: <PLAN.md path>; your rows: <ids>.
 Your files (create or edit only these): <list>. Read only: everything else.
 Shared files you own: <types file, router>. The UI agent imports them and never edits them.
 Order: 1) types file and hooks returning fixtures for every state, then report "contract ready";
@@ -123,17 +127,27 @@ Do not edit UI files, do not install dependencies, do not commit.
 Report: files changed, each check command with its result, contract changes you need (if any), not checked.
 ```
 
+When the owner's CLAUDE.md routes UI work to a named agent (in this setup `ui-designer`, `~/.claude/agents/ui-designer.md`), the UI subagent is that agent type, given this brief and told to load kwx-designer. Its report lists the defect library entries it checked.
+
 UI subagent (the ui-designer agent):
 
 ```text
 Load kwx-designer and follow its gate. Repo: <path>. Design system: <files>.
+Owner rules: read ~/.claude/CLAUDE.md (UI sections) and the owner's defect library (~/.claude/ui-designer/mistakes.md) first; list the entries you checked.
+Shared plan: <PLAN.md path>; your rows: <ids>.
 Feature: <one line>. States list (part 1 of the contract): <paste>.
+Daily use: <the 5 tasks the user repeats and the one question each screen answers, from PLAN.md section 2>.
+  Show the user's numbers prominently. Restraint means no decoration, never less information.
 Data comes only from these hooks and types (read only to you): <paste part 3 and the types file path>.
 Fixtures for each state: <path>. Build every state in the list; copy for each error code: <list of codes>.
 Your files (create or edit only these): <list>. Do not fetch data directly, do not edit hooks, types or routes.
 If a state needs data the hooks do not return, stop and report the exact field you need.
+Do not edit next.config, proxy, tsconfig, build scripts or package.json. Report routing, caching, build or
+framework errors to the main agent with the exact symptom; do not run framework experiments.
 Report: files changed, which states are built and how each was checked, the kwx-designer gate result.
 ```
+
+The main agent writes no style words (calm, restraint, minimal, borrow from X) into the brief unless the user wrote them. (Trial 2026-11-01: web-A's brief asked to "borrow restraint" and be "calm"; the result was an outlined call to action and less information.)
 
 ## 6. When one side needs a change from the other
 
@@ -141,6 +155,7 @@ Report: files changed, which states are built and how each was checked, the kwx-
 2. The main agent decides, updates the contract (both parts, never one), and passes the change to the owner of the file.
 3. The owner makes the change; the main agent tells the other agent it is in.
 4. A change to the contract after the parallel phase starts is the most common source of breakage: rerun the contract test (section 7) after each one.
+5. Framework, routing, caching and build problems found by the UI side go to the main agent, which hands them to the developer side; the fix follows `ai-agents/verification-loop.md` section 3 (timebox).
 
 ## 7. The joint final gate
 
@@ -177,3 +192,6 @@ When the feature is small or subagents are not available, one agent does both si
 | Disjoint edits | no file changed by both agents | the two reports' file lists do not intersect |
 | Both gates run | developer gate and kwx-designer gate reports present | the final report |
 | Duet rows pass | J1 to J9 marked, no open [critical] | the final report |
+| UI agent per owner rules | the UI subagent type matches the agent the owner's CLAUDE.md names | read the launch call |
+| UI brief carries owner files and daily use | the brief contains the defect library path and a Daily use block | read the brief |
+| Derived values in the contract | every displayed value in the states list has a field in the types file; `rg` the UI for money arithmetic finds none | read and grep |

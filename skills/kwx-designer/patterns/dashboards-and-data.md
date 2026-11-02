@@ -53,6 +53,8 @@ Column headers: a 16 px line icon before each label that hints at the type (# fo
 - Build each `Intl.NumberFormat` once and reuse it; constructing one per cell is slow in a long table.
 - Decimals: dim them where the integer matters most ("USD 293.00" with ".00" dimmed in the crypto app, Tim Gabe).
 - Copy on hover: a small copy icon at the right end of a hovered cell, then a "Copied!" confirmation.
+- Record tables use the full content width, not the marketing max-width. Identifiers (email, name, ID, invoice number, date, amount) are `white-space: nowrap`, with ellipsis and the full value in a tooltip only when space truly runs out. Only the one free text column (message, note) wraps at word boundaries; `overflow-wrap: anywhere` and `break-all` belong only there.
+- Below 640 px a table becomes stacked rows: the bold primary field, a grey secondary line, the key number on the right.
 
 ## 4. Choosing the form: table, timeline, chart
 
@@ -78,6 +80,7 @@ Column headers: a 16 px line icon before each label that hints at the type (# fo
 4. Small grey label above a large dark value for stats ("Projects 12", "Rating 4.87").
 5. Do not show a KPI that duplicates the chart directly below it; drop KPI tiles and tab rows that repeat the charts.
 6. A metric that is 0 on a new account is an empty state, not a big "0". Show what will appear and how to get it.
+7. Summary tiles that answer an action question on the page that owns the data are required, not vanity: the amount large (26 to 32 px), the count small, and the tile filters or links to the list. Period tiles show hours and money (`patterns/data-dense-tools.md` section 3). The rules above cover repeated and decorative metrics.
 
 ## 7. Charts
 
@@ -99,10 +102,10 @@ Visual hierarchy is what is big; disclosure hierarchy is what is shown vs hidden
 |---|---|---|
 | 1 | Always visible global button | Share, Add + |
 | 2 | Visible icon | Sort, Filter icon buttons with tooltips |
-| 3 | Icon on hover, with tooltip | Remove user "x" on row hover, tooltip "Delete" |
+| 3 | Icon on hover, with tooltip (safe actions only) | Copy link or Open on row hover, with a tooltip |
 | 4 | Hidden in a menu | Row menu: Copy, Comment, Insert row, Change data type, Link data, Delete row |
 
-2. Remove user, three levels compared: hover "x" (chosen), always visible "x", a full red "remove" button on every row (visibly heavy). Reveal it "as soon as the user starts to look for that functionality".
+2. Remove user: a ... menu on the row with Remove inside, then a confirm naming the person or an undo toast. Never a one click x revealed by hover (KM7: a hover only Forget unpaired the user's earbuds), and never a full red remove button on every row (visibly heavy). Hover may reveal safe actions only.
 3. Infrequent features go in a popover anchored to their trigger, not a new page. Share popover: invite field with "Can view" dropdown and black "Invite" button at the top (the primary action first), "General access", "People with access" with role dropdowns (owner row with a green shield), footer with the share URL and "Copy Link".
 4. "New features or elements often don't require a dedicated page." Try a popover, drawer, hover state or menu first.
 5. Apple Reminders: swipe reveals Details, Flag, Delete as secondary actions to checking off.
@@ -125,10 +128,10 @@ Menu styling: 16 px line icon left of each label, white card, about 12 px radius
 
 ## 10. Dashboard type and density
 
-- Dashboard type scale: nothing above about 24 px. Example: 24 H1, 20 H2, 18 H3, 16 H4, 14 H5, 12 H6 (Kole Jain, every UI concept).
+- Dashboard type: running text up to 24 px (example: 24 H1, 20 H2, 18 H3, 16 H4, 14 H5, 12 H6, Kole Jain, every UI concept); key figures (tile values, totals, a running timer) 26 to 32 px bold tabular; one focal figure per view up to 44 px.
 - Sidebar label example: 15 px font, 24 px line height, 24 px icons.
 - Page header: small eyebrow with icon ("Private Database" with a lock), title (medium weight, about 2x body, est.), one line grey description, segmented tabs with a "+" to add a tab. Top right: "Edited 23 min ago" grey, Share, avatar, star, kebab.
-- One black (or accent) pill primary per toolbar ("Add +"); everything else ghost icon buttons.
+- One brand accent pill primary per toolbar ("Add +"); everything else ghost icon buttons. Selected segments and toggles use a raised neutral segment or the brand fill, one choice across the product, never black when the brand is not black.
 
 ## 11. Before and after
 
@@ -154,5 +157,7 @@ Menu styling: 16 px line icon left of each label, white card, about 12 px radius
 | One home per metric | Each KPI component is rendered on one route | `grep` the KPI component usage |
 | Tooltips | Every icon only button has a tooltip/accessible label | Search icon buttons without `title`/`aria-label`/Tooltip wrapper |
 | Hidden layer exists | Sort, filter, row menu, empty and error states implemented | Check the components exist and are wired, not stubs |
-| Dashboard type cap | No font token above about 24 px inside the app shell | Read the type tokens used in dashboard views |
-| Explicitness ranked | Rare or destructive row actions are hover or menu, not always visible buttons | Count visible buttons per row: at most one or two |
+| Dashboard type cap | Running text 24 px or below; key figures 26 to 32 px; one focal figure up to 44 px | Read the type tokens used in dashboard views |
+| Explicitness ranked | Rare actions in a menu; destructive never revealed by hover | Count visible buttons per row (3 or fewer quiet text buttons); trace every hover revealed control to a non destructive handler |
+| Identifiers nowrap | Emails, IDs, invoice numbers, dates and amounts never break mid word; only the free text column wraps | `grep -rnE -e 'overflow-wrap: *anywhere' -e 'break-all'`; each hit is on the free text column |
+| Summary tiles | List pages with open or overdue states show 2 to 4 actionable tiles (amount large, count small, click filters) | Read the list page; each tile has a filter handler |

@@ -85,7 +85,7 @@ Then run the automated checks below on the changed files.
 | Dependency audit | no high or critical production advisories | `npm audit --omit=dev --audit-level=high`, `pnpm audit --prod`, `cargo deny check advisories` |
 | Secret scan | no findings | `gitleaks git -v --log-opts="origin/main..HEAD"` |
 | Authorization tests | deny tests for new resources exist and pass | tests asserting another user's object returns 404 |
-| RLS coverage (Supabase) | every public table has RLS and per-operation policies | SQL in `../backend/auth.md` section 14 |
+| RLS coverage (Supabase) | every public table has RLS and per-operation policies | SQL in `../backend/auth.md` section 15 |
 | Workflow audit | no findings on changed workflows | `zizmor .github/workflows` |
 | Dangerous sinks | no new unreviewed hits | grep patterns in `input-and-injection.md` section 11 and `browser-security.md` section 6 on changed files |
 | TLS verification | no disabled verification | `rg -n "rejectUnauthorized: *false\|NODE_TLS_REJECT_UNAUTHORIZED\|danger_accept_invalid\|verify=False" ` |

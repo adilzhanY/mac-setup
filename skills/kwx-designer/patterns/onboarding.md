@@ -9,7 +9,7 @@
 3. Never do this
 4. Sign up inside onboarding
 5. Teaching the interface: tooltips and checklists
-6. First run empty state
+6. First run empty state and the first screen
 7. Identity and verification flows
 8. Research before designing
 9. Checks
@@ -70,9 +70,15 @@ This is the Duolingo sequence (language, goals, first lesson, then sign up, abou
 
 **Gestures**: if the product relies on a non obvious gesture (swipe up to search), teach it once, in context, the first time it would help.
 
-## 6. First run empty state
+## 6. First run empty state and the first screen
 
 One full screen empty state pointing at the primary action beats per section empty cards: "Get started with Notely / Add notes, calendar events, tasks files and more with the action bar" with an arrow to the "+". It teaches the core loop on first run.
+
+### The first screen
+
+The sign in or welcome screen is the brand moment. It shows the logo mark at 64 to 96 px, the product name as a display title, a one line tagline, a warm heading ("Willkommen zurück") and then the form.
+
+A product with more than one language shows the language switch on this first screen (small, top right, preselected from the device locale) and again in settings. The choice is stored before an account exists and carries into it. Check: list the screens where the language can change; the first signed out screen is one of them.
 
 ## 7. Identity and verification flows
 
@@ -99,3 +105,5 @@ Before designing any onboarding flow, study how strong products already solve it
 | Dismiss persists | Dismissed tips do not return | A stored flag per tip |
 | First run state | New accounts see a designed empty state pointing at the main action | Find the zero data branch of the home screen |
 | Time estimates true | "Takes about 3 minutes" comes from measured data | Ask for or find the source |
+| Brand moment | The first signed out screen shows the logo mark (64 to 96 px), the name, a tagline and a heading | Read the sign in screen |
+| Language before sign in | A multi language product offers the switch on the first signed out screen, stored before an account exists | List the screens with a language control |

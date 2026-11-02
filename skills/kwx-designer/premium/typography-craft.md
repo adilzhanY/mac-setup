@@ -103,7 +103,8 @@ Apple SF Pro has the same behaviour built in: the system applies size specific t
 ## 7. Weights
 
 - **No text weight under 400** (Rauno's interface guidelines). Thin weights break on low DPI screens and fail contrast.
-- **Medium headings look best at 500 to 600** (Rauno).
+- **Weights:** body 400, labels and buttons 500 to 600, page titles and display headings 700 (800 allowed for a mobile display title), section headings 600 to 700, the focal figure 700 tabular. A page with no weight above 600 reads washed out (the trial's skills arm used 600 at most and lost to bold 700 headings). No UI text below 400. Follow the project's design system where it says otherwise (Iris: bold globally, DemiBold for emphasis).
+- **Size jump:** body to page title at least 1.6x in apps, 2.5x on marketing heroes.
 - **Do not change font weight on hover or selection** (Rauno). It changes text width and shifts the layout. Change colour or background instead. If you must, reserve the bold width with a hidden bold copy or use a variable font with a fixed width axis.
 - **Bold OR italic, never both together** (Butterick).
 - **Use the fewest weights that make the hierarchy:** usually regular for text, medium or semibold for labels and headings, bold for the rare strong emphasis.
@@ -201,7 +202,7 @@ From Apple, *The Details of UI Typography* (WWDC20):
 - [ ] Body 16px+ with 1.4 to 1.6 leading and a 45 to 75 character measure
 - [ ] A scale exists and each view uses 2 to 3 sizes
 - [ ] Headings carry negative tracking from 24px up; all caps carry +0.05 to +0.12em
-- [ ] No text weight under 400; no weight change on hover or selection
+- [ ] No text weight under 400; no weight change on hover or selection (exception: the project's design system sets a current item weight, as Iris DemiBold does; then reserve the label's width so the row does not shift)
 - [ ] Tabular figures wherever numbers change or are compared; numbers right aligned in tables
 - [ ] Curly quotes, real ellipsis, non breaking spaces in "10 MB" and shortcuts
 - [ ] Long text left aligned; headings balanced; no single word widows in headings

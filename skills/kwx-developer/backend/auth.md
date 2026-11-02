@@ -19,7 +19,8 @@ Sources: OWASP cheat sheets (Authentication, Session Management, Password Storag
 11. Authorization: check on the server, every time, per object
 12. Multi-tenancy
 13. Supabase and Postgres row level security
-14. Checks
+14. Small admin areas
+15. Checks
 
 ## 1. Defaults in one table
 
@@ -118,6 +119,7 @@ Rules (NIST SP 800-63B-4):
 - Check new passwords against a breached password list (Have I Been Pwned range API with k-anonymity: send only the first 5 hex chars of the SHA-1, compare suffixes locally). Tell the user why it was rejected.
 - Allow paste and password managers (`autocomplete="current-password"` / `"new-password"`). Offer show password.
 - Never silently truncate.
+- When no breached password API may be called (offline, no network in tests), bundle a blocklist of at least the 10,000 most common passwords (for example the SecLists top 10k file, MIT licensed, checked in as data) and reject any password on it, plus any password that is one repeated character or a straight sequence (`11111111`, `12345678`, `abcdefgh`). Minimum length 15 when the password is the only factor; 8 plus the blocklist only when the project records that decision. Test: sign up with the 20 most common passwords and `11111111` returns 400 with a code such as `password_too_common`. (Trial 2026-11-01: both arms accepted `11111111`.)
 
 ## 6. Login, enumeration, lockout
 
@@ -130,7 +132,31 @@ if (!user || !ok) return problem(401, "INVALID_CREDENTIALS", "Invalid email or p
 ```
 
 - Signup and reset also must not reveal whether an email exists: "If an account exists for that address, we sent a link." For signup, send an email to the existing owner instead of an error on screen.
-- Throttle per account and per IP (see `rate-limits-retries-timeouts.md`). Exponential delay after failures. Hard limit far below 100 consecutive failures per account (NIST cap). Lockout must not become a denial of service tool: allow password reset during lockout, and prefer delays over hard locks (OWASP).
+- Throttle per account and per IP in the order below (see `rate-limits-retries-timeouts.md` section 6). Per account failures add a growing delay and never refuse the correct password. A per account hard cap, if any, is 50 or more, and password reset keeps working during it (NIST SP 800-63B-4 caps at 100). Lockout must not become a denial of service tool (OWASP).
+
+**Throttle order that cannot lock a member out.** Trial 2026-11-01: android-A's `server/src/app.ts` checked the per email failure count before the password, so ten wrong guesses by anyone locked the real member out.
+
+1. Per client IP: a hard limit (for example 30 failed logins per 15 minutes), checked first.
+2. Per account: failures add a growing delay (1 s, 2 s, 4 s, capped at 30 s) before the answer, never a hard block that refuses the correct password.
+3. A correct password from an IP that is not itself blocked always logs in and resets the account counter.
+4. The dummy hash runs for unknown emails.
+5. Counters live in the database or a shared store unless the README states single process.
+
+The growing per account delay satisfies the NIST cap; if a per account hard cap is added anyway, it is 50 or more and password reset still works during it. Never check `failures(email) >= N` before verifying the password and refuse the right password: that lets anyone lock any member out.
+
+```ts
+if (await ipBlocked(ip)) return problem(429, "RATE_LIMITED", "Too many attempts. Try again later.");
+const n = await failures(email);                       // a delay, never a refusal
+const delay = deps.sleep ?? sleep;                   // injected so tests run in milliseconds
+if (n > 0) await delay(Math.min(30_000, 1000 * 2 ** (n - 1)));
+const user = await db.user.findUnique({ where: { email } });
+const ok = await verify(user?.passwordHash ?? DUMMY_ARGON2_HASH, password);
+if (!user || !ok) { await recordFailure(email, ip); return problem(401, "INVALID_CREDENTIALS", "Invalid email or password."); }
+await resetFailures(email); // the right password always wins
+```
+
+Test: 10 bad tries for one account from IP A, then the right password from IP B returns 200; after 30 bad tries from one IP over random emails the next returns 429.
+In tests pass a recording sleep (or `vi.useFakeTimers`) and assert the delays requested, so the probe runs in milliseconds.
 - Log every authentication success and failure, lockout, reset and MFA change, without the password or token (OWASP Logging).
 
 ## 7. Reset, email change, re-authentication
@@ -262,7 +288,18 @@ create policy "notes: owner deletes" on public.notes for delete to authenticated
 create index on public.notes (user_id);
 ```
 
-## 14. Checks
+## 14. Small admin areas
+
+A waitlist, an inbox, a back office page. Trial 2026-11-01: web-B had everything below and was rated the better admin; web-A used Basic auth with no limit and no delete while its privacy text promised erasure.
+
+- Prefer a login form with a signed `HttpOnly; Secure; SameSite=Strict` session cookie (8 hours, `Path=/admin`) and a sign out button over HTTP Basic auth, which has no logout and no throttle.
+- Compare the password timing safe (`crypto.timingSafeEqual` on equal length digests, or a stored Argon2id hash) and throttle attempts (section 6, gate F7).
+- Check the session again in every admin page, route handler and server action. A check only in a layout or middleware is not enough.
+- Send `Cache-Control: no-store` and `X-Robots-Tag: noindex` on every admin response.
+- Give the admin every action the site's own privacy text promises. If it promises erasure (GDPR Art. 17) or withdrawal of consent, the admin has delete per entry with a confirm; never leave it to "run this SQL".
+- CSV export shows labels, not internal codes (`data/backups-and-recovery.md` section 13).
+
+## 15. Checks
 
 | Check | Pass condition | How to verify |
 |---|---|---|
@@ -283,3 +320,6 @@ create index on public.notes (user_id);
 | No service role in client | `service_role`/secret key absent from client bundles and public env vars | `rg -n "service_role\|SUPABASE_SERVICE\|sb_secret_" ` in client dirs; `rg -n "NEXT_PUBLIC_.*SERVICE\|EXPO_PUBLIC_.*SERVICE"` |
 | No user_metadata in authz | policies and server checks do not read `user_metadata` | `rg -n "user_metadata\|raw_user_meta_data" ` |
 | OAuth flow safe | PKCE S256, exact redirect URIs, state/nonce checked, linking only on verified email | read auth config; `rg -n "response_type=token\|grant_type=password\|email_verified" ` |
+| Common passwords rejected | a test with 11111111 and the top 20 expects rejection | `rg -n 11111111 <tests>` |
+| No lockout DoS | the IP A / IP B test exists and passes | the test name in the run output |
+| Admin area | logout handler, delete with confirm, login limit; no `WWW-Authenticate: Basic` | `rg -n "logout\|delete" <admin routes>`; `rg -n "WWW-Authenticate"` |

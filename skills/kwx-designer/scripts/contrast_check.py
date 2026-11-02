@@ -3,6 +3,7 @@
 
     contrast_check.py <bg> <fg> [<fg> ...]
     contrast_check.py "#0E0F0E" "#C8FE23" "#8A8F86" "rgba(255,255,255,0.6)"
+    contrast_check.py --surface <bg> <fill> [<fill> ...]
     contrast_check.py --selftest
 
 Colours: #rgb, #rrggbb, #rrggbbaa, rgb()/rgba(). A translucent foreground is
@@ -12,6 +13,13 @@ Prints per foreground: the WCAG ratio with AA/AAA verdicts for body text,
 large text (24px, or 18.7px bold) and UI parts (3:1), and the APCA Lc value
 (the newer perceptual measure; |Lc| 75 body, 60 large/fluent text, 45 large
 headings, 30 non-text, 15 the floor for anything visible).
+
+--surface: does a filled control (a pill, a button, a well) separate from the
+surface it sits on? Prints the largest per channel sRGB difference, the OKLCH
+lightness difference (information only), and VANISHES when the largest channel
+difference is under 10, else "separates". A labelled control's fill needs this
+separation, not WCAG 1.4.11 3:1 (that applies when the boundary alone identifies
+the control); its label still needs 4.5:1, so run the normal mode on the label.
 """
 import re
 import sys
@@ -70,6 +78,40 @@ def apca_lc(text, bg):
     return 0.0 if s > -0.1 else (s + 0.027) * 100
 
 
+SURFACE_MIN = 10  # per channel; the user's rule from mistakes library M4 (#050506 on #000000)
+
+
+def oklch_l(rgb):
+    """OKLab lightness L (0 to 1) of an sRGB colour."""
+    def lin(v):
+        v /= 255
+        return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+    r, g, b = map(lin, rgb)
+    l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b
+    m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b
+    s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b
+    l_, m_, s_ = (x ** (1 / 3) for x in (l, m, s))
+    return 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_
+
+
+def surface(bg_s, fill_s):
+    """(max channel difference, OKLCH L difference, verdict) of a fill on its surface."""
+    bg, bga = parse(bg_s)
+    if bga < 1:
+        raise ValueError("the surface must be opaque; blend it over what is behind it first")
+    fill, a = parse(fill_s)
+    shown = blend(fill, a, bg)
+    delta = max(abs(f - b) for f, b in zip(shown, bg))
+    dl = abs(oklch_l(shown) - oklch_l(bg))
+    return delta, dl, "VANISHES" if delta < SURFACE_MIN else "separates"
+
+
+def surface_report(bg_s, fill_s):
+    delta, dl, verdict = surface(bg_s, fill_s)
+    return (f"{fill_s:>24} on {bg_s}: max channel difference {delta:3d}  "
+            f"OKLCH L difference {dl:.3f}  {verdict}")
+
+
 def report(bg_s, fg_s):
     bg, bga = parse(bg_s)
     if bga < 1:
@@ -91,6 +133,9 @@ def selftest():
     assert abs(apca_lc([255, 255, 255], [0, 0, 0]) + 107.9) < 0.5
     assert blend([255, 255, 255], 0.5, [0, 0, 0]) == [128, 128, 128]
     assert parse("#fff") == ([255, 255, 255], 1.0)
+    assert surface("#000000", "#050506")[2] == "VANISHES"
+    assert surface("#000000", "#161618")[2] == "separates"
+    assert surface("#000000", "rgba(255,255,255,0.02)")[2] == "VANISHES"
     print("selftest ok")
 
 
@@ -98,6 +143,14 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if args == ["--selftest"]:
         selftest()
+    elif args and args[0] == "--surface":
+        if len(args) < 3:
+            sys.exit(__doc__)
+        try:
+            for fill in args[2:]:
+                print(surface_report(args[1], fill))
+        except ValueError as e:
+            sys.exit(f"error: {e}")
     elif len(args) < 2:
         sys.exit(__doc__)
     else:
