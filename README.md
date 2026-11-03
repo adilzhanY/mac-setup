@@ -46,6 +46,7 @@ Ask these before starting, in one message:
 | `skills/kwx-designer/` | `~/.claude/skills/kwx-designer/` | kwx-designer: premium, intuitive UI design for web, mobile, desktop and editors, with custom SVG icons and a quality gate |
 | `skills/kwx-developer/` | `~/.claude/skills/kwx-developer/` | kwx-developer: correct, consistent, safe code in Rust and TypeScript across the full stack; reads the codebase first and asks before fixing what it finds |
 | `skills/kwx-tester/` | `~/.claude/skills/kwx-tester/` | kwx-tester: independent QA that writes tests from the spec, proves they can fail, hunts bugs and audits test suites; trio with kwx-designer and kwx-developer |
+| `skills/kwx-deepen/` | `~/.claude/skills/kwx-deepen/` | kwx-deepen: turns a request into a deeper version, not a bigger one (expert moves, raw material, runnable methods, outside proof) before doing it; also at github.com/adilzhanY/kwx-deepen |
 | `herdr/config.toml` | `~/.config/herdr/config.toml` | herdr, the terminal workspace for AI agents |
 
 ---
@@ -279,7 +280,7 @@ cp claude/CLAUDE.md claude/settings.json claude/statusline.sh ~/.claude/
 cp claude/hooks/notify.sh ~/.claude/hooks/
 chmod +x ~/.claude/statusline.sh ~/.claude/hooks/notify.sh
 cp -R claude-mods ~/dev/claude-mods
-cp -R skills/caveman skills/mgpro skills/kwx-designer skills/kwx-developer skills/kwx-tester ~/.claude/skills/
+cp -R skills/caveman skills/mgpro skills/kwx-designer skills/kwx-developer skills/kwx-tester skills/kwx-deepen ~/.claude/skills/
 ```
 
 The mods must live at exactly `~/dev/claude-mods`: `settings.json` loads them from there through `CLAUDE_CODE_PLUGIN_DIRS`, and the stats card runs `~/dev/claude-mods/stats-card/scripts/stats.mjs`. Make `~/dev/claude-mods` a git repo with a first commit so later edits are tracked (`git init && git add -A && git commit -m "Claude Code mods"`), and ask the user before pushing it anywhere.

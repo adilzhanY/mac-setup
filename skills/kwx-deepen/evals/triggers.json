@@ -1,0 +1,31 @@
+{
+  "should_trigger": [
+    "/deepen write a cover letter for a backend role at a payments company",
+    "make my landing page convert better",
+    "I want a deeper version of this task, not a bigger one: summarise this paper for my team",
+    "what would a real expert do with this request? plan our product launch",
+    "go deeper on this: our signup flow loses half the people at step 2, fix it",
+    "help me decide whether to rent or buy a flat",
+    "write a blog post about why our API is fast",
+    "build me a budget spreadsheet for a small bakery",
+    "make a 60 second promo video script for our app",
+    "teach me how databases handle transactions",
+    "do this properly, like a senior would: add rate limiting to our login endpoint",
+    "research the best e-signature tool for a 10 person company",
+    "our dashboard numbers look wrong, figure out what is going on",
+    "improve this prompt before you run it",
+    "rewrite my request the way a top professional would ask for it"
+  ],
+  "should_not_trigger": [
+    "rename getUser to fetchUser in api.ts",
+    "fix the typo on line 3 of README.md",
+    "run the tests",
+    "what is 17 times 23",
+    "commit and push",
+    "translate 'good morning' into Spanish",
+    "just do it quickly, no extra steps: add a .gitignore for node",
+    "show me the git log",
+    "make the button text say Save instead of Submit",
+    "keep it small: bump the version to 1.2.1"
+  ]
+}

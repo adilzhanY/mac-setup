@@ -1,0 +1,50 @@
+{
+  "skill": "kwx-deepen",
+  "evals": [
+    {"id": 1, "prompt": "Write a cover letter for a senior backend engineer job at a payments company.", "assertions": [
+      "Names a specific expert (for example a hiring manager or technical recruiter for payments backend roles), not a generic professional",
+      "Treats the job posting and the applicant's real CV as the raw material and asks for or fetches them instead of writing from assumptions",
+      "Names independent proof: each requirement in the posting is matched to a real piece of the applicant's evidence",
+      "Keeps the deliverable one page and lists what it will not do (no invented experience, no generic praise of the company)",
+      "Shows the rewritten task in at most 10 lines before doing it"]},
+    {"id": 2, "prompt": "Make my landing page convert better.", "assertions": [
+      "Starts from raw material such as analytics funnels, session recordings, support questions or user interviews, not from design trends",
+      "Names at least two concrete methods (for example a five second test, funnel analysis, message hierarchy review)",
+      "Names independent proof such as an A/B test with a stated metric and sample size, or a user test",
+      "Keeps scope: does not propose a full rebrand or redesign; lists not doing items"]},
+    {"id": 3, "prompt": "Teach me how HTTPS works.", "assertions": [
+      "Names the expert as a teacher of the topic and uses a primary source (for example RFC 8446 or a browser vendor's documentation) for facts",
+      "Includes a way to check understanding that is not the teacher's own say so (retrieval questions, a task the learner performs)",
+      "The explanation stays the same size a normal answer would be, deeper not longer"]},
+    {"id": 4, "prompt": "Fix the flaky test in checkout.spec.ts.", "assertions": [
+      "Reproduces before fixing: repeated runs or CI logs as raw material",
+      "Names the root cause class (timing, shared state, order dependence, network) before changing code",
+      "Independent proof: the test passes many repeated runs and still fails when the behaviour it guards is broken",
+      "Does not refactor the whole suite; not doing list present"]},
+    {"id": 5, "prompt": "Should I rent or buy a flat?", "assertions": [
+      "Asks for or uses the person's own numbers (income, savings, local prices, rates) as raw material",
+      "Cites official or primary sources for rates and taxes and states jurisdiction and date",
+      "Uses a named method (for example a rent versus buy model with opportunity cost and a sensitivity range)",
+      "States where professional advice is needed and does not decide for the person"]},
+    {"id": 6, "prompt": "Summarise this paper for my team.", "assertions": [
+      "Reads the paper itself (methods, data, limitations), not the abstract or press coverage only",
+      "Checks each headline claim against the paper's own tables or figures",
+      "Keeps the summary short and lists not doing items (no literature review)"]},
+    {"id": 7, "prompt": "Rename getUser to fetchUser in api.ts.", "assertions": [
+      "Does not run the six steps or show a rewritten task",
+      "Just does the rename (and its callers) with no extra ceremony",
+      "Does not mention the skill or that the method was skipped"]},
+    {"id": 8, "prompt": "/deepen plan a three day trip to Lisbon.", "assertions": [
+      "Works for a field with no playbook by using the general method",
+      "Names raw material such as official opening hours, transit maps and event calendars, and checks times against official sites",
+      "Asks at most one question, and only one whose answer changes the plan (for example dates or budget)"]},
+    {"id": 9, "prompt": "Add rate limiting to our login endpoint.", "assertions": [
+      "Uses the software playbook: limits per client IP from a trusted proxy setting and per account with a growing delay, never a lockout a stranger can trigger",
+      "Names independent proof as probes: a forged X-Forwarded-For header does not reset the limit, and the right password from another IP still works",
+      "Does not expand into a full auth rewrite"]},
+    {"id": 10, "prompt": "Write a blog post about why our API is fast.", "assertions": [
+      "Raw material is real measurements (benchmarks, p50 and p99 latency, the code path), not adjectives",
+      "Independent proof is a reproducible benchmark or third party numbers the reader can check",
+      "Same length as a normal post; no invented numbers"]}
+  ]
+}
