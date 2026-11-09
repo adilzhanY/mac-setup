@@ -8,6 +8,24 @@
   "seed": 41,
   "length": 30.0,
   "character": "wood",
+  "beat": true,
+  "instruments": "samples",
+  "humanize_ms": 12,
+  "opening": "soft",
+  "dips": 0,
+  "lra": 6.0,
+  "tone": {
+    "centroid": 1800,
+    "rolloff": 4000
+  },
+  "samples": {
+    "enabled": false,
+    "jobs": [
+      "card",
+      "logo"
+    ],
+    "layer": []
+  },
   "palette": {
     "lead": "steel",
     "keys": "harp",
@@ -61,15 +79,15 @@
     },
     {
       "name": "gap",
-      "bars": 0.25,
+      "bars": 0.125,
       "energy": 0,
       "parts": [
-        "silence"
+        "dip"
       ]
     },
     {
       "name": "drop",
-      "bars": 3.75,
+      "bars": 3.875,
       "energy": 1.0,
       "parts": [
         "drums",

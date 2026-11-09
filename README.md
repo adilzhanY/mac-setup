@@ -42,7 +42,7 @@ Ask these before starting, in one message:
 | `claude/hooks/notify.sh` | `~/.claude/hooks/notify.sh` | Notification and sound when Claude finishes |
 | `claude-mods/` | `~/dev/claude-mods/` | Claude Code mods: Clawd, model buttons, stats card, savvy-progress |
 | `skills/caveman/` | `~/.claude/skills/caveman/` | The caveman skill, with the user's own edits |
-| `skills/mgpro/` | `~/.claude/skills/mgpro/` | mgpro: Apple-style motion graphics videos with Remotion, three.js and synthesized sound |
+| `skills/mgpro/` | `~/.claude/skills/mgpro/` | mgpro: Apple-style motion graphics videos with Remotion, three.js, an original score on recorded instruments and found sound effects (3.1.0) |
 | `skills/kwx-designer/` | `~/.claude/skills/kwx-designer/` | kwx-designer: premium, intuitive UI design for web, mobile, desktop and editors, with custom SVG icons and a quality gate |
 | `skills/kwx-developer/` | `~/.claude/skills/kwx-developer/` | kwx-developer: correct, consistent, safe code in Rust and TypeScript across the full stack; reads the codebase first and asks before fixing what it finds |
 | `skills/kwx-tester/` | `~/.claude/skills/kwx-tester/` | kwx-tester: independent QA that writes tests from the spec, proves they can fail, hunts bugs and audits test suites; trio with kwx-designer and kwx-developer |

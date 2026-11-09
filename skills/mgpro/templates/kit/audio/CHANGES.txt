@@ -1,0 +1,245 @@
+Sound engine rework (2026-10-27): what changed, for updating references/music.md and references/sound.md
+=====================================================================================================
+
+Why: the first films sounded made by the same machine. Measured against 129 professional films
+(mgpro-research/research_notes/Sound design in motion graphics/real_films_measured.md) they were
+clones (profile distance 0.88 to 1.60, pro p10 2.67; torq and Sendoku shared 42 percent of their
+transients), too bright (centroid 2.3 to 3.0 kHz, pro 1.8), too narrow in range (LRA 3.6 to 4.2 LU,
+pro 5.8), opened at full level, slammed every cut (18.6x, pro 1.2 to 1.7) and quantized everything.
+The synth effects rang 5 to 10 times too long, were pure tones, mostly flat and mono, and one
+sound served many events (sfx/ANALYSIS.md). Everything below was measured, not listened to.
+
+
+1. sfx.py (rewritten)
+---------------------
+CHARACTERS = glass, wood, metal, plastic, paper, digital, soft (plastic and paper are new).
+MAT holds each material's profile: click band, d20, ping and its fall, partials, ring, noise share,
+blip fall, width, attack, plus decay (how long hits ring), drop (how far hits fall in pitch) and hw
+(width of hits). Characters now differ in envelope, noise, width and pitch movement, not only in
+frequency.
+
+Every effect takes seed=None (same seed, same sound) and is peak normalised to v. Most take size
+(0 light to 1 heavy: lower, longer, wider). One effect per job:
+
+  tap(character, v, size, seed)                  press: 4 to 15 ms noise, falling
+  click(character, v, seed)                      press plus a quieter release 45 to 80 ms later
+  tick(character, pitch, v, seed)                data tick, 4 to 9 ms, 3 to 10 kHz
+  blip(key, i, character, v, seed, octave=5, ring=None)   select: tone plus noise transient, falls 1 to 2 st
+                                                 (CHANGED: the old length argument is gone; octave added)
+  pop(key, i, character, v, seed)                soft pop, 740 to 990 Hz, rising 3 to 7 st
+  text(key, i, character, v, seed)               text appearing, falls an octave or more
+  toggle(key, on, character, v, seed)            click plus two tones a fourth apart, up for on
+  card(character, v, size, seed)                 card lands: 80 to 180 ms thud, mostly 120 to 500 Hz
+  chip(key, i, character, v, seed)               light object lands: struck tone near C6
+  land(character, size, key, i, v, seed)         chip, card or impact by size
+  impact(character, v, size, seed, tail=0)       hit: sub body 50 to 70 ms plus a 120 to 500 Hz knock
+                                                 (20 to 30 percent of the energy, survives phones)
+  boom(character, v, seed)                       impact with a long cinematic sub tail
+  swish(seconds=0.12, character, v, seed, direction, whistle)   60 to 160 ms, low air plus whistle
+  whoosh(seconds, character, v, seed, weight, air, whistle, direction, rise)
+                                                 length follows the motion; up to 0.18 s it is a swish;
+                                                 otherwise a wide low "whum" falling 2 st; air=True is
+                                                 the bright designed sweep (5 to 8 kHz, wide)
+  transition(seconds, character, v, seed, weight)   whoosh into a small landing
+  panel(opening, character, v, seconds, seed)    sheet opens (rising sweep, ENDS on frame) or closes
+  success(key, character, v, seed, degrees)      4 notes 60 to 80 ms apart, 190 to 290 ms d20
+  chime(key, character, v, degrees, seed)        kept, calls success
+  error(key, character, v, seed, hits=2)         low, buzzy, semitone clash, falling
+  tier(key, i, character, v, seed)               struck hit plus a bell rising per tier
+  logo(key, character, v, seed, notes=None)      hook notes then an inharmonic bell, 1.2 to 2.4 s
+  riser, reverse_swell (now take seed), sub_drop, stutter, tape_stop, texture(..., seed, rate)
+  peak_index(x)                                  where a sound peaks, to put a whoosh peak on its frame
+
+Placement: riser, reverse and panel(opening=True) END on their frame; swish, whoosh and transition
+PEAK on their frame; everything else starts on it. score.py does this.
+
+Measured: 665 of 686 measures of 152 renders inside the library ranges of ANALYSIS.md section 4
+(sfx_catalog.py --synth-only --check). Before: blip d20 166 to 413 ms (now 19 to 29), tick 19 (now
+5 to 7), click 26 to 27 (now 6 to 10; taps 6 to 14) with 77 percent in 120 to 500 Hz (now 0), success 432 to 692
+(now 199 to 284), impact 95 to 98 percent sub with d20 179 to 469 (now 70 to 79 percent sub, 20 to
+29 percent in 120 to 500 Hz, d20 20 to 47), whoosh one 0.41 s hiss at 1.7 to 7.1 kHz (now swish,
+swing at 350 to 400 Hz, airy at 7 to 8 kHz). Pitch: 28 of 43 renders flat before, 58 of 152 now.
+Known misses: soft is low passed on purpose (its tick, panel and success sit a little dark); paper
+has no tonal chip (it lands as a light card); the text fall reads as half a semitone because pYIN's
+first frames sit on zero padding (the frames after show 762 to 511 Hz).
+
+
+2. vary.py (new): no event plays the same way twice
+----------------------------------------------------
+  v = Vary(film_seed, pool=4)
+  s = v.play(name, make, kind, key=None, pool=None)   make(seed) builds one take
+  v.take(name), v.take_seed(name, take), v.cents(kind), v.gain(), v.offset(loose)
+
+A pool of takes per effect (each its own synthesis seed built from the film seed, so two films
+never share a transient), served from a shuffled bag with no immediate repeat, then pitch jitter
+like a sampler (CENTS: tonal 12, bell 6, impact 60, noisy 120, whoosh 150, sample 100 cents),
+level plus or minus 1.5 dB, and a small late leaning start offset only for loose sounds (ambient
+cues, textures). Picture synced hits stay frame exact. python vary.py runs its self test.
+
+
+3. samples.py (new): CC0 library sounds, off by default
+-------------------------------------------------------
+music.json:  "samples": {"enabled": false, "jobs": ["card", "logo"] or "all", "layer": ["impact"]}
+  jobs   played from a sample instead of the synth
+  layer  a sample under the synth, at -6 dB
+  Samples(seed, film_root, vary, jobs, layer); .wants(job), .play(job), .write_assets()
+  family(job) gives a job's files: the picks of sfx/ANALYSIS.md section 3, else the 3 nearest by
+  features in the job's category (no clipped files, lead under 150 ms).
+  python audio/samples.py lists every job's family.
+Files are copied into the film (public/sfx/<pack>__<path>), read from there, their lead silence
+trimmed; public/sfx/ASSETS.txt lists file, pack, source page, CC0 1.0. Same variation as synth.
+
+
+4. score.py
+-----------
+  score.py [--root FILM_DIR]           default: the folder above audio/
+  build(brief, cues, seconds, root=None, verbose=True) -> (master, grid, dips)
+  render(brief, cues, seconds) -> (music unlevelled, grid)
+  effects(cues, seconds, key, character, vary, samples=None)
+  plan_dips(brief, grid, seconds, cuts), dip_curve(dips, n, depth_db), energy_curve(grid, n), report(...)
+  JOBS (job: level, variation kind, anchor), ALIASES (old cue names), WEIGHT_GAIN, DEFAULT_WEIGHT, TRANSIENT
+
+Cue fields (cues.json):
+  sound      a job (tap click tick blip pop text toggle card chip land impact boom swish whoosh airy
+             transition panel_open panel_close success error tier logo riser reverse sub_drop texture)
+             or an alias (place block -> chip, word type -> text, switch -> toggle, open panel ->
+             panel_open, close -> panel_close, chime done -> success, bell -> logo, hit final ->
+             impact, sub -> sub_drop, count grain -> tick, key -> tap). gap and stop are skipped.
+  weight     hero | support | ambient. Gains 1.0, 0.4, 0.16; about a third of ambient events play
+             nothing. Defaults: logo and boom hero, texture and tick ambient, the rest support. Only
+             hero impacts keep full size and the long sub. More than one hero per 8 s is reported.
+  cut        true marks a picture cut. A support cue with a hard attack on a cut drops to ambient
+             (the music carries ordinary cuts); automatic dips stay off cuts; fingerprint measures
+             the rise at these cuts.
+  size       0 to 1, or "light" / "heavy"
+  material   overrides the film's character for this cue
+  seconds, index, on (toggle), notes (logo hook MIDI notes), air (whoosh), direction (1 or -1),
+  pan, loose (allow a small start offset)
+
+Form (music.json "form"):
+  "parts": ["dip"]   NEW: the section is a dip: the previous section keeps playing 24 dB down
+                     (not dead air). Use this for the gap before a drop. Keep it near 0.3 s (an
+                     eighth of a bar at 105 BPM): a 0.57 s gap made the hero cut read 27x.
+  "silence"          still true silence; professional films rarely use it (71 percent have none).
+  "hero": true       the section that gets the crash (default: the highest energy section only).
+  "crash" now plays only on the hero section.
+
+New music.json fields (all optional, defaults in brackets):
+  beat          [true]   false: no drums, one long bass note per chord, rubato strums and hook,
+                         swells instead of crashes, a stronger texture bed (29 percent of pro films
+                         have no clear pulse; measured pulse 0.03 to 0.06)
+  humanize_ms   [12]     median timing offset of music onsets; per part shares in HUMANIZE (kick
+                         0.3, snare 0.55, hat and perc 1.0, bass 0.45, chords 0.8, hook 0.7), late
+                         leaning, the bar's kick downbeat exact, velocity spread 6 percent
+  opening       ["soft"] the first second about 2 LU under the whole; "cold" opens at full level
+  opening_lu    [seeded -1.6 to -3.5]   target of the soft opening
+  head          [seeded 0 to 0.12 s]    silence before the first sound
+  dips          ["auto"] dip sections, then a breath in the opening, one before the end card, one
+                         before the loudest section (the main re-entry: a bar long slide down 5 to 8
+                         dB before it, then back about 9 dB louder, first hit 20 to 70 ms after),
+                         more at bar lines, about one per 7 s, off cuts, never at 45.8 percent (where
+                         all three AI films had their gap). Or a list: {"at": "drop"} or
+                         {"bar": 6.5, "len": 0.3, "main": false}. 0 turns them off.
+  dip_db        [-24]
+  lra           [6.0]    the level span between energy 0 and 1 is fitted to land this LRA
+  tone          [{"centroid": 1800, "rolloff": 4000}]   false keeps the mix's own brightness
+  bass_harmonics [0.3]   harmonics of the low end added for small speakers
+  bed           [0.5, beatless 1.5]   quiet off grid percussive grains between the hits (rule 12)
+  bed_rate      [7, beatless 10]      grains per second at energy 0.5
+  keep_alive    [true]   drumless bars between 55 and 85 percent of the film get the lightest part
+  pool          [4]      takes per effect
+  samples       [enabled false]       see section 3
+  fx_level      [0.5]    unchanged
+The kit example (src/music.json) now carries these fields, and its gap is a 0.125 bar dip.
+
+score.py prints LRA, opening, centroid, rolloff, grid offset, pulse, density at 75 to 85 percent,
+planned and measured dips, then RMS per section. A dip section reads about -30 dB RMS, not -50.
+
+
+5. dsp.py
+---------
+  dec(n, d20_ms, a_ms=0.5, hold_ms=0)   envelope by the part you hear: 20 dB down d20_ms after the peak
+                                        (perc() still takes a TIME CONSTANT: 20 dB down at 2.3 x length)
+  glide(f0, f1, n, ms, curve)           pitch tracks for falls, pops, dopplers
+  pink(n, r), modal(n, freqs, d20s, amps, r, detune), repitch(x, cents), spread(a, b, width)
+  harmonics(x, cut=120, amount=0.3)     low end saturated, only its harmonics added back
+  darken(x, centroid=1800, rolloff=4000)   shelves toward the pro medians; lifts a mix under 60 percent
+  master(mix, lufs=-14, tp=-1, tone=(1800, 4000), bass_harmonics=0.3)
+        CHANGED: gain stages the mix to lufs - 8 before the glue compressor (threshold lufs - 2). The
+        old fixed -16 dBFS threshold on an unstaged mix squashed 3.6 LU of range and lifted openings.
+  balance() default top range is now 0.1 to 1.5 percent above 8 kHz (was 3 to 10, which brightened)
+
+
+6. grooves.hits
+---------------
+  hits(pattern, start, step, swing, steps_per_beat, humanize, rng, lock=(), late=0.3, vel=0.06)
+  humanize is a spread in seconds leaning late by late x humanize; steps in lock stay exact;
+  velocity varies by vel whenever rng is given.
+
+
+7. fingerprint.py, filmstats.py, pro_stats.json
+-----------------------------------------------
+  fingerprint.py film.wav --bpm B --against ~/.claude/skills/mgpro/music/registry.json \
+      [--cues src/cues.json] [--music src/music.json] [--video out/film.mp4] [--cold-open]
+  fingerprint.py film.wav --checks [--cues ...]        pro range checks without a registry
+  fingerprint.py --build-stats ~/dev/mgpro-research/films   rebuilds pro_stats.json
+Prints pass or FAIL per check with the professional range beside it; exits 1 on any failure:
+  profile distance  10 trait profile (tempo, onset density, percussive share, share under 120 Hz,
+                    LRA, loudest 3 s position, grid offset, side share, dips per 10 s, density
+                    variation), standardized as crossfilm.py does; at least 2.67 (pro p10, different
+                    makers) from EVERY registry film
+  shared transients at most 10 percent against every registry film (pro median 4.6)
+  centroid          982 to 2652 Hz;   rolloff 1714 to 5927 Hz
+  LRA               5 to 11.4 LU
+  opening           first second at most -1.0 LU against the whole (skip with --cold-open)
+  rise at cuts      at most 3.93x (pro p90; median 1.71); cuts are cues with "cut": true, else hero
+                    cues, else section starts (--music), or scene cuts of a video (--video). Also
+                    printed: hero and ordinary cuts apart, and what this music's bar downbeats
+                    measure with no cut at all.
+  informational     grid offset, onsets on grid, dips per 10 s, pulse, density, percussive share,
+                    side share, tempo, each dip, the 2 s density curve
+Registry films are measured once and cached in ~/.cache/mgpro/filmstats/.
+filmstats.py: analyze(wav or array, sr, patches=True), loudness, tone, cut_rise, shared_transients,
+profile_vector, video_cuts, pro_stats(). It is a port of the research analyze.py and cutsync.py.
+
+
+8. sfx_catalog.py, demo.py
+--------------------------
+  sfx_catalog.py --synth-only --check   renders every effect in every character, writes
+                                        sfx/synth.json, prints each against TARGETS (no library
+                                        rescan, so CATALOG.md is untouched)
+  demo.py <genre> [--beatless]          8 bar sketch through the full chain (dips, master)
+  demo.py <genre>|example --film [--beatless --key --mode --bpm --seed]
+                                        a 30 s film on the kit's example form with a sample cue list,
+                                        into out/demo-film-<genre>/ (src/, public/film.wav)
+
+
+9. Facts the references should carry
+------------------------------------
+- Cuts on bar downbeats measure 3 to 9x from the music alone, with no effect. Keep downbeat cuts
+  for structure (act changes, the reveal, the end card); let ordinary cuts fall with the action.
+  Professional cuts are barely more aligned with musical hits than chance (72 vs 64 percent).
+- Mark cues with weight and cut. Hero: the title, the reveal, the end card. Everything else small.
+- The old guidance "gap and stop sections should read below -50 dB" and "dead stops" is replaced by
+  dips; true silence at most once or twice.
+- sound.md's effect recipes (click with a 380 Hz body, the 0.41 s whoosh, sub only impacts) describe
+  the old synth.
+- The checks are measured, not heard. Nothing in this rework was listened to.
+
+
+10. Found recordings and story sounds (mgpro 3.1.0, 2026-10-31)
+---------------------------------------------------------------
+Cue fields, for premade sounds found per film (references/sfx-selection.md):
+  file        a recording, or a list of recordings rotated without an immediate repeat; looked up
+              in the film's public/ folder, then the CC0 library (~/.local/share/mgpro/sfx); the
+              silence before the first transient is cut (a 123 ms lead made a click land 7 frames
+              late), the peak normalised, the tail faded 5 ms
+  story       true: an action the story turns on; never ambient, never randomly skipped, high
+              passed at 170 Hz ("hp" changes it), and the music ducks under it
+  gain        a per cue multiplier
+music.json:
+  story_duck_db   [3.0]  how far the music steps aside under story cues (20 ms early, about 150 ms)
+Every found library file a cue played is copied into public/sfx/ with a licence line in
+public/sfx/ASSETS.txt (copy_found). Measure story sounds with the script in
+references/sfx-selection.md, section 11; the master limiter caps transient loudness, so past a
+point gain does nothing and the duck and a fuller recording are the levers.

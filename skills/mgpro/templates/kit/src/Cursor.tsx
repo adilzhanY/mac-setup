@@ -58,23 +58,80 @@ function visibility(track: CursorTrack, frame: number) {
   return last.on ? t : 1 - t;
 }
 
-function press(clicks: number[] | undefined, frame: number) {
+/** Cursor springs from Cap (open source, "inspired by Screen Studio"): tension, mass, friction. */
+const SPRINGS = {
+  mellow: [470, 3, 70],
+  click: [530, 1, 40],
+  drag: [1000, 1, 40],
+} as const;
+
+export interface Click {
+  f: number;
+  /** ring: an ink ring spreads; none: the target reacts on its own (a field, a button). */
+  style?: "ring" | "none";
+}
+
+/** Power3 out between stops: fast away, decelerating into the target as if pulled in. */
+const out3 = (t: number) => 1 - Math.pow(1 - t, 3);
+
+/**
+ * The cursor's real path for every frame: the stops give a target (an arc between them, power3
+ * out), and a spring follows that target, stiffer near clicks and while dragging. Computed once.
+ */
+export function makePath(track: CursorTrack, frames: number, clicks: Click[], drag?: [number, number]) {
+  const xs = new Float64Array(frames);
+  const ys = new Float64Array(frames);
+  const t0 = cursorAt(track.stops.map((s) => ({ ...s, ease: s.ease ?? out3 })), 0);
+  let x = t0.x, y = t0.y, vx = 0, vy = 0;
+  const stops = track.stops.map((s) => ({ ...s, ease: s.ease ?? out3 }));
+  for (let f = 0; f < frames; f++) {
+    const tgt = cursorAt(stops, f);
+    const nearClick = clicks.some((c) => f >= c.f - 12 && f <= c.f + 4);
+    const dragging = drag && f >= drag[0] && f <= drag[1];
+    const [k, m, c] = dragging ? SPRINGS.drag : nearClick ? SPRINGS.click : SPRINGS.mellow;
+    const sub = 8;
+    const dt = 1 / 60 / sub;
+    for (let i = 0; i < sub; i++) {
+      const ax = (k * (tgt.x - x) - c * vx) / m;
+      const ay = (k * (tgt.y - y) - c * vy) / m;
+      vx += ax * dt;
+      vy += ay * dt;
+      x += vx * dt;
+      y += vy * dt;
+    }
+    xs[f] = x;
+    ys[f] = y;
+  }
+  const at = (f: number) => {
+    const i = Math.max(0, Math.min(frames - 1, Math.round(f)));
+    return { x: xs[i]!, y: ys[i]! };
+  };
+  return { at };
+}
+
+/** Press: down to 0.84 in 0.1 s (ease in), back in 0.22 s (ease out), the HeyGen launch timing. */
+function press(clicks: Click[], frame: number) {
   let p = 0;
-  for (const c of clicks ?? []) {
-    const d = frame - c;
-    if (d >= -3 && d < 0) p = Math.max(p, (d + 3) / 3);
-    else if (d >= 0 && d < 9) p = Math.max(p, 1 - d / 9);
+  for (const c of clicks) {
+    const d = frame - c.f;
+    if (d >= -6 && d < 0) p = Math.max(p, Math.pow((d + 6) / 6, 2));
+    else if (d >= 0 && d < 13) p = Math.max(p, 1 - out3(d / 13));
   }
   return p;
 }
 
-/** The person's own cursor, the macOS-White arrow, hand, I-beam and grab, with a soft press. */
-export function MacCursor({ track, frame, scale = 0.74, dark = false }: { track: CursorTrack; frame: number; scale?: number; dark?: boolean }) {
-  const opacity = visibility(track, frame);
-  if (opacity <= 0.001) return null;
-  const pos = cursorAt(track.stops, frame);
-  const prev = cursorAt(track.stops, frame - 1);
-  const speed = Math.hypot(pos.x - prev.x, pos.y - prev.y);
+/**
+ * The person's own cursor, the macOS-White arrow, hand, I-beam and grab, alive: it follows a spring,
+ * tilts with its horizontal speed (as in Figma and launch films), smears when fast, squashes on a
+ * press, and enters and leaves through the frame edges instead of fading.
+ */
+export function MacCursor({ track, frame, path, clicks, scale = 1.15 }: { track: CursorTrack; frame: number; path: ReturnType<typeof makePath>; clicks: Click[]; scale?: number }) {
+  const pos = path.at(frame);
+  const back = path.at(frame - 24);
+  const prev = path.at(frame - 1);
+  const tilt = Math.max(-20, Math.min(20, (pos.x - back.x) * 0.03 * 0.15 * 2));
+  const dx = pos.x - prev.x, dy = pos.y - prev.y;
+  const speed = Math.hypot(dx, dy);
   const shapes = track.shapes ?? [];
   let shape: Shape = "arrow";
   let from: Shape = "arrow";
@@ -86,11 +143,10 @@ export function MacCursor({ track, frame, scale = 0.74, dark = false }: { track:
     since = frame - s.f;
   }
   const blend = clamp(since / 3);
-  const p = press(track.clicks, frame);
-  const ripples = (track.clicks ?? []).filter((c) => frame >= c && frame < c + 20);
+  const p = press(clicks, frame);
   const draw = (s: Shape, o: number, at: { x: number; y: number }, key: string) => {
     const img = SHAPES[s];
-    const k = scale * (1 - 0.14 * p);
+    const k = scale * (1 - 0.16 * p);
     return (
       <Img
         key={key}
@@ -102,36 +158,32 @@ export function MacCursor({ track, frame, scale = 0.74, dark = false }: { track:
           width: 96 * k,
           height: 96 * k,
           opacity: o,
+          transform: `rotate(${tilt}deg)`,
+          transformOrigin: `${img.x * k}px ${img.y * k}px`,
+          filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.18))",
         }}
       />
     );
   };
-  // A short trail while the cursor moves fast, as a shutter would smear it.
-  const trail = speed > 7 ? [0.33, 0.66].map((d, n) => draw(shape, opacity * (n ? 0.08 : 0.18), cursorAt(track.stops, frame - d), `t${n}`)) : [];
+  // Motion blur: ghosts along this frame's travel, only when it really moves fast.
+  const ghosts = speed > 6 ? [0.25, 0.5, 0.75].map((g, n) => draw(shape, [0.22, 0.14, 0.07][n]!, { x: pos.x - dx * g, y: pos.y - dy * g }, `g${n}`)) : [];
+  const rings = clicks.filter((c) => (c.style ?? "ring") === "ring" && frame >= c.f && frame < c.f + 36);
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-      {ripples.map((c) => {
-        const t = (frame - c) / 20;
-        const r = 10 + 22 * EASE.out(t);
+      {rings.map((c) => {
+        const t = (frame - c.f) / 36;
+        const r = 8 + 34 * out3(t);
+        const at = path.at(c.f);
         return (
           <div
-            key={c}
-            style={{
-              position: "absolute",
-              left: pos.x - r,
-              top: pos.y - r,
-              width: r * 2,
-              height: r * 2,
-              borderRadius: "50%",
-              border: `2px solid ${dark ? "rgba(255,255,255,.5)" : "rgba(2,78,123,.35)"}`,
-              opacity: (1 - t) * opacity,
-            }}
+            key={c.f}
+            style={{ position: "absolute", left: at.x - r, top: at.y - r, width: r * 2, height: r * 2, borderRadius: "50%", border: `2px solid rgba(0,0,0,${0.55 * (1 - t)})` }}
           />
         );
       })}
-      {trail}
-      {blend < 1 && draw(from, opacity * (1 - blend), pos, "from")}
-      {draw(shape, opacity * blend, pos, "now")}
+      {ghosts}
+      {blend < 1 && draw(from, 1 - blend, pos, "from")}
+      {draw(shape, blend, pos, "now")}
     </div>
   );
 }
@@ -141,7 +193,7 @@ export function RemoteCursor({ track, frame, color, name }: { track: CursorTrack
   const opacity = visibility(track, frame);
   if (opacity <= 0.001) return null;
   const pos = cursorAt(track.stops, frame);
-  const p = press(track.clicks, frame);
+  const p = press((track.clicks ?? []).map((f) => ({ f })), frame);
   const k = 1 - 0.12 * p;
   return (
     <div style={{ position: "absolute", left: pos.x, top: pos.y, opacity, pointerEvents: "none", transform: `scale(${k})`, transformOrigin: "0 0" }}>

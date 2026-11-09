@@ -2,6 +2,8 @@
 
 Make these calls after the intake (`intake.md`), which already settled the destination, goal, features, length, feel and music. Each call below has a default; take it, state it in the reply, and move on. Do not add questions beyond the intake's two rounds.
 
+A simple idea from the user is enough to start: make the staging decisions yourself and never send a technical questionnaire. What the user states explicitly (format, length, sound, allowed resources) beats every default here. Never invent real properties of the product, prices, or preferences the user has not confirmed. After these calls comes the storyboard (`storyboard.md`).
+
 ## 1. Platform and interaction
 
 | Product | Interaction | Why |
@@ -44,6 +46,8 @@ Read the repo for data the film can show honestly: datasets bundled with the app
 ## 5. The product's own claim rules
 
 Products often have rules about how they may describe themselves. Find them (README, CLAUDE.md, docs, store listing) and follow them in the copy. torq never says "top N% of people", only "of competitive lifters", because the population is meet lifters. A film that breaks the product's own wording rule is a film the user cannot publish.
+
+Time shortened in the edit is not the product's speed. If a wait was cut down for the film (an export, a render, an AI run), do not let the film claim the product is that fast; mark it as shortened or as a demonstration when the speed could be read as a claim.
 
 ## 6. People
 

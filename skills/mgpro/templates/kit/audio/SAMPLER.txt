@@ -1,0 +1,147 @@
+Sampled instruments (2026-10-29): the API, for updating references/music.md and references/rights.md
+=====================================================================================================
+
+Why: the user hears the numpy synthesized instruments as "AI like". The engine's patterns, harmony
+and form stay; they are now performed by recorded CC0 instruments instead of oscillators, with a
+systematic feel instead of random jitter, and the -24 dB dips are gone. Measured, not listened to.
+
+Files
+  sampler.py             the player (numpy, scipy, soundfile only)
+  sampler_map.json       engine kinds -> instruments -> SFZ layers, plus the rooms
+  fetch_instruments.sh   downloads the library (pinned commits), checks the disk, converts to FLAC,
+                         writes SOURCES.txt with the licence of every source
+  score.py               uses it unless music.json says "instruments": "synth" (samples are the default
+                         when the library exists; without it the synth plays and a line says why)
+  demo.py                samples by default; --synth renders a sketch or a --film with the synth
+
+music.json
+  "instruments": "samples" | "synth"     default samples; samples falls back to the synth for any kind
+                                         the map does not cover and for everything when the library
+                                         is missing (it prints why)
+  "samples_map": {"keys:piano": "felt"}  per film overrides of the map's kinds (a name, or
+                                         {"instrument": ..., "key": ..., "vel": [lo, hi], "db": ...,
+                                         "octave": ..., "width": ...})
+  "pump"                                 default 0.12 with samples (0.4 synth): players do not duck
+
+Library
+  default /games/mgpro/instruments, or $MGPRO_INSTRUMENTS, or "library" in sampler_map.json.
+  audio/fetch_instruments.sh [DEST]   about 1.3 GB as FLAC; stops if / < 3 GB or DEST disk < 8 GB free;
+                                      re-runnable (skips files present)
+
+Instruments in the map (all CC0 1.0 unless noted)
+  grand (VCSL Kawai grand, 3 layers, release samples), felt (Osiris Piano una corda, 3 mics;
+  no CC0 felt piano exists), upright (VSCO upright), upright_kw (FreePats Upright Piano KW),
+  marimba, vibes (soft mallets), glock, kalimba (VCSL), harp (VSCO), guitar (Karoryfer Shinyguitar,
+  miked archtop; stands in for nylon), strings / spiccato / pizz (VSCO 2 CE cello, viola and violin
+  sections split at 54 and 64), contrabass, contrabass_pizz (VSCO), cello, cello_stac, cello_pizz
+  (Karoryfer x bigcat solo cello), flute, horn (VSCO), upright_bass (Karoryfer Sneakybass pizzicato),
+  electric_bass (Karoryfer Black And Blue Basses, Dark Black fingered), timpani, bass_drum (VSCO),
+  kit (Virtuosity Drums mid mic: kick, snare center, rimshot, cross stick, closed, open hat, ride,
+  crash, toms, congas, bongos, cowbell, agogo, claves, cabasa, triangle; up to 26 velocity layers
+  and 4 round robins), claps, shaker, tamb, woodblock (VCSL), body (body percussion: snaps, claps).
+  Rooms: Voxengo IRs (Nice Drum Room, French 18th Century Salon, Musikvereinsaal); licence "royalty
+  free for any purpose, including commercial usage", no selling or redistributing the files. Without
+  them a generated room is used.
+
+Kinds (family:kind as score.py asks)
+  keys: piano grand felt upright_piano marimba mallet vibes celesta(glock) bell(glock) kalimba harp
+        nylon(guitar)
+  pad: strings     stab: strings (spiccato)     ostinato: strings pizz marimba piano felt harp
+  lead: flute brass(horn) cello pizz           bass: upright pluck(electric) pizz(contrabass)
+  kick: acoustic soft punch boom               snare: tight crack gated rim clap snap
+  hat: closed open ride shaker tamb            perc: conga bongo tom woodblock cowbell agogo clave
+  crash: crash                                       cabasa triangle rim shaker tamb taiko(bass drum)
+  bed: grain (the off grid bed played as very soft shaker taps)
+  Stay synth: kick house 808 dist taiko-as-kick, snare trap, hat 909 trap, bass sub 808 reese acid
+  log octave fm wobble, keys epiano organ clav steel, pads saw choir glass warm air, leads pluck sine
+  whistle vowel square sync supersaw fold. score.SYNTH_ALIAS gives the synth a stand in for the
+  sample only kinds (felt, grand, upright_piano -> piano; cello -> sine; pizz bass -> upright).
+
+sampler.py API
+  note_number("F#3") -> 54          c4 = 60
+  parse_sfz(path, defines=None) -> (opcode dicts with "_path", control)
+  regions_from_sfz(path, switch=None, cc=None, defines=None, chokes=None) -> [Region]
+      cc overrides set_cc defaults ({"4": 127}); defines pins $names over the file's own
+  load_folder(folder or [files]) -> [Region]    names carry note (C4), layer (v2, vl3, pp..fff,
+      soft/med/loud), round robin (rr2); no notes in the names = one unpitched one shot drum on 60
+  Instrument(regions, name, seed, releases=True, edges=None)
+      .from_path(sfz or folder, name, seed, switch, releases, cc, defines)
+      .pick(m, vel, trigger="attack") -> regions that sound (one round robin take, never the same
+          take twice in a row on a key and layer; velocity outside every layer takes the nearest)
+      .play(region, m, vel, dur, one_shot=None, attack=None, release=None) -> (2, n) float32
+      .render(events, seconds=None, pedal=(), vel=(1, 127), gamma=1.0, releases=None) -> (2, n)
+          events: {"t": s, "m": midi, "v": 0..1, "d": s, "pan": -1..1, "gain", "attack", "release"}
+          pedal: [(down_s, up_s)], note offs inside wait for up
+  Layered([(Instrument, lokey, hikey), ...]).render(...)   split by key
+  room_ir(rt60, predelay, size, seed, bright) -> stereo IR;  load_ir(path) -> 48 kHz, normalised
+  convolve(x, ir, wet, lo=180, hi=9000, width=0.6)          band limited, narrowed wet return
+  Performer(seed, overrides, library, map_path, verbose)    what score.py uses
+      .available, .has(family, kind), .entry(family, kind)
+      .note(bus, family, kind, t, m, v, d, gain, pan, **event) -> False = use the synth
+      .chord(bus, family, kind, t, notes, v, d, gain, spread, width, **event)
+      .render(buses, seconds, pedal_by_bus)   every part into its dsp.Bus, peak matched per
+          instrument and drum key, side narrowed by "width" (default 0.75)
+      .space(x, room, wet)                    "drums", "room", "hall" from the map
+  CLI: sampler.py --test | --list | --demo keys:felt [--out x.wav]
+
+What the player supports from SFZ
+  #include, #define, comments, <control> default_path, set_ccN, note_offset, octave_offset;
+  <global>/<master>/<group>/<region>; key, lokey, hikey, pitch_keycenter (numbers or names), lovel,
+  hivel, tune, transpose, pitch_keytrack, volume (+ group/master/global_volume), amplitude, pan,
+  offset, end, loop_mode=one_shot, ampeg attack/hold/decay/sustain/release, amp_veltrack,
+  amp_velcurve_N, xfin/xfout_lovel/hivel, trigger=release with rt_decay, group/off_by/off_mode
+  (chokes follow off_by chains, also through regions the controllers leave out), seq_length/
+  seq_position and lorand/hirand as round robins, locc/hicc against the controller defaults,
+  sw_last against sw_default, *_onccN for pan, volume, envelope and offset (linear).
+  Not modelled: filters (fil_type, cutoff), LFOs, pitch envelopes, tune controllers, loop points
+  inside files (notes longer than a sample loop its tail with a crossfade instead), legato scripts,
+  note_polyphony. A stereo file whose channels are close to polarity inverted (correlation under
+  -0.3, some spaced pair notes) plays its louder channel so it survives a mono phone speaker.
+
+Measured after both rounds (demo.py <genre> --film [--synth], fingerprint.py --checks --cues --music;
+films and fingerprint.txt in /games/mgpro/demos)
+  film                       centroid rolloff LRA   opening rise   grid off on grid dips/10s pulse onsets/s side   checks
+  boom_bap synth             1333     2401    6.8   -1.8    2.40x  0.079    0.65    0.67     0.27  3.63     0.086  pass
+  boom_bap samples           1590     2939    7.9   -1.2    2.13x  0.138    0.95    4.67     0.59  2.60     0.136  pass
+  cinematic_pulse synth      1431     2993    8.3   -1.3    2.20x  0.179    0.62    0.00     0.32  2.47     0.102  pass
+  cinematic_pulse samples    1129     2336    10.8  -1.7    1.86x  0.077    0.88    3.67     0.26  2.33     0.079  pass
+  bossa_electronica synth    1792     4059    6.4   -1.7    2.76x  0.087    0.95    0.00     0.60  6.60     0.123  pass
+  bossa_electronica samples  1688     3262    7.0   -1.5    3.09x  0.114    0.81    0.67     0.33  3.30     0.169  pass
+  Before the second round boom_bap failed the rise at cuts on both paths (4.12x synth, 4.34x samples):
+  the pre-drop gain dip made the hero cut slam. cinematic_pulse with samples sits near the dark edge
+  (centroid 1129, floor 982) and the wide edge of LRA (10.8, ceiling 11.4). The sampled films show
+  more measured dips per 10 s (3.7 to 4.7, pro p90 3.5): natural decays between plucked and
+  staccato notes, not gain dips (none are planned).
+  Single notes (sfx_catalog.analyse): two synth piano, marimba and kick notes are identical
+  (similarity 1.0); sampled kick, hat and guitar takes differ by round robin (0.99, 0.10, 0.28);
+  sampled piano, marimba, strings and the snare at one velocity repeat (one take per layer in those
+  libraries), so their variety comes from velocity choosing other layers.
+
+Second round (same day, from the user's review: the automatic dips "sounded like the audio broke"
+and the music still sounded AI like). These change the synth path too.
+
+1. Dips. "dips" now defaults to 0 (score.py and the kit's src/music.json): no gain dips unless a
+   brief asks ("auto" or a list, unchanged otherwise). A form section with "parts": ["dip"] is an
+   arranged breath, not a gain hole: drums, bass, hook, fills and the crash stop; the chord keeps
+   ringing (one sustained strum when the keys are keyed, else nothing) and the pad plays the chord
+   with a short 80 ms attack; reverb tails ring on. The level curve holds the previous section's
+   energy through it, and breath_guard(mix, grid) lifts a breath that measures more than 3 dB
+   under the bar before it (40 ms ramps, at most 12 dB). plan_dips() no longer turns dip sections
+   into gain dips. Measured on the six demos: breaths sit -2.7 to +2.2 dB against the bar before,
+   the quietest 50 ms inside any breath about 5 dB under it.
+2. Instruments default to "samples" when the library exists (code and kit music.json).
+3. Feel (score.Feel) replaces the independent random jitter per note:
+   - a timing template per part (kick, snare, hat, perc, bass, chords, hook), drawn once from the
+     film's seed and repeated every bar: each step leans late by LEAN x share x humanize_ms (kick
+     0.1, snare 0.7, hat 0.6, perc 0.5, bass 0.25, chords 0.45, hook 0.35) plus a fixed deviation,
+     half size on beats, clipped to -0.5 to +2 times the share; the bar downbeat is always exact.
+     HUMANIZE shares and humanize_ms (default 12) keep their meaning as the size.
+   - an accent template per part (bar downbeat 1.06, beats 1.0, offbeat 8ths 0.93, 16ths 0.87,
+     times a fixed 3 percent hand per step) and a velocity contour over each phrase (phrase_bars,
+     default 4): a rise and fall of 6 percent for drums and bass, 12 for chords, 16 for the hook;
+     plus 2 to 3 percent random velocity so sample layers still vary.
+   - pushes of 5 to 15 ms early only on the hook's peak note, the last note of the answer phrase
+     and the last chord hit of a phrase's cadence bar.
+   - the fill roll lost its random jitter; beatless films keep their rubato (hook 0 to 35 ms late,
+     strums and bass as before).
+   Feel.hits(pattern, t0, part, bar, swing, depth) is grooves.hits on the grid plus the template.

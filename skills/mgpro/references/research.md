@@ -25,16 +25,26 @@ Research before building when the user asks for it, or when the brief brings som
 - Screen Studio smooths recorded cursor paths with bezier interpolation and spring easing; zooms use springs with optional motion blur.
 - Multiplayer cursors: CSS transitions are straight lines; springs carry momentum; splines are the most accurate.
 - Sources: https://screen.studio/, https://liveblocks.io/blog/how-to-animate-multiplayer-cursors, https://animations.dev/learn/animation-theory/spring-animations
+- Superseded in detail by the research of 29 Oct 2026 (Cap's open source springs, press timing, tilt, smear, size, entries and exits, the HyperFrames launch film house style): `interaction.md`, How it moves, and `research/ad-music-and-logo/notes/cursor_animation.md`.
 
 ## Music for commercials
 
 - Upbeat ads: 100 to 140 BPM (product launches 100 to 120), major keys, bright instruments; claps and finger snaps over a modern beat, funky bass, plucky synths, soft piano; keep the arrangement uncluttered and the mids clear.
 - Sources: https://www.foximusic.com/blog/upbeat-music-for-a-commercial-glossary-guide/, https://uppbeat.io/music/category/commercial
+- Measured on 129 professional motion graphics films (Oct 2026): tempo spread about 108 to 148 BPM (10th to 90th percentile), only 18 percent between 117 and 123; 29 percent have no clear beat; onsets sit about 0.1 of a 16th off the grid; median spectral centroid 1.8 kHz. Details in `sound-research.md`, section 1; rules in `music.md`.
+- Fast music (above about 94 BPM) raised purchase intent only for promotion focused ads, in a study of 26,025 video ads: https://thearf.org/access-knowledge-2/publications/journal-of-advertising-research/when-fast-music-makes-ads-more-persuasive-and-when-it-doesnt/
 
 ## Sound design for motion
 
-- Sync every cut, fade and movement to an audio cue; synthesize in code for exact timing; whooshes for shape moves, soft clicks for text reveals; layer effects, ambience and music.
-- Sources: https://nobledesktop.com/blog/the-role-of-sound-design-in-motion-design, https://www.motiontheagency.com/blog/sound-design-examples-before-after-in-motion
+- Early note (Oct 2026): sync every cut, fade and movement to an audio cue; synthesize in code for exact timing; whooshes for shape moves, soft clicks for text reveals; layer effects, ambience and music. Sources: https://nobledesktop.com/blog/the-role-of-sound-design-in-motion-design, https://www.motiontheagency.com/blog/sound-design-examples-before-after-in-motion
+- Superseded in part by the sound research of 27 Oct 2026, which measured 129 professional films against the first three mgpro films and found that professionals do **not** sound every cut (the average cut gets 1.18 times the baseline onset strength; the mgpro films gave 18.6 times). Hierarchy, dips, sync tolerances, the vocabulary of sound types, variation, loudness per destination and the sources for all of it are in `sound-research.md`; the practical rules in `sound.md`; the licences of sound libraries in `rights.md`.
+
+## vizavi-motion (merged Oct 2026)
+
+- A separate motion skill (version 1.6.1, written in Russian) built on three mechanics: quality by default (a camera that keeps moving through depth, motion blur and depth of field), direction before code (one thread, 3 to 5 options per scene, a full storyboard), and a mandatory review after the first build that checks the decoded export. Its parts now live in `craft.md`, `storyboard.md`, `review.md`, `interaction.md`, `three.md`, `models.md`, `images.md`, `video-references.md` and `styles.md`; `vizavi-map.md` maps every item.
+- Its 3D source and image provider research is dated 16.10.2026 and checked documentation only (no model downloaded and tested, no character continuity tested, nothing generated).
+- Its product UI module was adapted from the user's archives `higgsfield-motion-saas.skill` and `higgsfield-motion.skill` (handed over 15.10.2026; not an official Higgsfield work). Points of reference inside them: `higgsfield-motion/references/production-lessons.md` lines 318 to 325 and 351 to 375; `higgsfield-motion-saas/references/client-taste.md` line 63; `higgsfield-motion-saas/references/transitions.md` lines 45 to 68 and 95 to 100; `higgsfield-motion-saas/references/techniques.md`. The measurement and viewing statuses in those archives belong to their author and were not checked independently. Principles were taken over, not the implementations, brand palette, project tastes, fixed length, BPM, engine or tool installs.
+- `techniques.md` there names MahdiEdits lessons "Top 3 Most Used SaaS Video Transitions", "Overlapping Keyframes" and "Overlapping Keyframes in 3D"; their public URLs are not confirmed, so do not cite links for them.
 
 ## Music identity (Oct 2026, after the Sendoku film)
 

@@ -9,6 +9,20 @@
 - Python venv in the project (`.venv`) with numpy, scipy, soundfile, pyloudnorm, pedalboard, librosa (for the fingerprint) (plus pyproj and mapbox-earcut for map data).
 - `.gitignore`: node_modules, out, .venv.
 
+### When Remotion is not the right tool (vizavi-motion's default, an option here)
+
+mgpro's default stays Remotion, React and three.js: the kit, the examples, the cue list and every lesson are built on it. vizavi-motion defaults the other way: plain HTML, CSS and JavaScript, SVG or Canvas and its own controlled timeline whenever that is enough for the quality, with libraries and engines (three.js, Remotion, Lottie, audio libraries) only when there is a real need, and no framework or dependency installed up front by habit. Take that route only when the user asks for it, an existing project is already built that way, or the piece is a small web loop that Remotion would only slow down. Never rebuild a stack the user chose. Choose by the quality of the result, the features needed, the environment and the cost of the complexity; plain code is not always better.
+
+The export without a framework, so that it is as reliable as a Remotion render:
+
+1. Fix a controlled clock and a frame grid. Render **every** frame reproducibly at time `i / fps`, including the complex phases and the transitions, and check that the sequence is complete and in order. Never record a realtime playback that may drop frames.
+2. Make and mix the soundtrack into a real audio file on the same timeline (the sound side is in `music.md` and `sound.md`).
+3. Mux frames and audio with FFmpeg into an MP4 at the given frame rate and length, mapping the intended video and audio streams explicitly. With a silent brief, add no audio.
+4. Settle the start and the final tails before muxing (see Finishing).
+5. Check the decoded MP4 (`review.md`).
+
+The HTML and other editable sources are delivered as well, never instead of the video.
+
 ## Files
 
 - `SCRIPT.md`: the per-second script (tables per act: time, picture, sound) and the copy list.
@@ -25,6 +39,8 @@
 - Review the draft from frames, not stills: extract frames with `ffmpeg -ss <t> -i draft.mp4 -frames:v 1 -vf scale=384:-1` in segments around every transition (3 to 8 frames apart), `magick montage *.png -tile 6x -geometry +2+2 -background black sheet.png`, one sheet per transition. Read each sheet asking: does anything pop, overlap, stall, lag behind its sound, or land on an empty frame?
 - What the torq draft review caught that stills had missed: a bloom too weak to read, a "GO" visible for two frames, a leaderboard still leaving while the next title entered, a counter that reached its final value while the line had barely started, a hit landing on an empty frame. All five took one edit each.
 - Debug a blank 3D layer with `--log=verbose` and grep for errors; no error usually means a data or timing problem, not a shader problem.
+- Before the first full build, probe the riskiest range on its own: `--frames=<from>-<to>` on the render command (`storyboard.md`, Probe the biggest risk first).
+- The first full draft is never the film. Run the review in `review.md` on it: each problem as one line in `REVIEW.md` (interval, what is seen, cause, fix, recheck), fix the causes, recheck the changed ranges and the whole, and finish only when what is left is taste.
 
 ## Parallel work
 
@@ -34,6 +50,8 @@
 ## Finishing
 
 - Final render CRF 16, 320k audio, one render per format the destinations need (`Film-<format>` compositions).
+- The size and frame rate come from the destination. When nothing else decides it (YouTube, a website, no answer), the master is vizavi-motion's default too: MP4, 1920x1080, an even 60 fps, H.264, yuv420p (Remotion's default pixel format; pass `--pixel-format=yuv420p` if a config changed it), AAC audio unless the brief is silent. 4K only on request. The editable sources (the video project) are delivered alongside.
+- Settle the start and the final tails before muxing or converting: never cut off the last scene, a voice or the music's ending to make lengths match, and never lengthen the film with a stray audio tail. Do not use `-shortest` blindly when the shorter stream would cut the planned ending.
 - Export per destination (`destinations.md`):
   - App Store: 30 fps, 886x1920 or 1920x886, H.264 about 11 Mbps, AAC 256k: `ffmpeg -i film.mp4 -vf fps=30 -c:v libx264 -b:v 11M -maxrate 12M -bufsize 24M -profile:v high -level 4.0 -pix_fmt yuv420p -c:a aac -b:a 256k app-preview.mp4`. 15 to 30 s exactly.
   - Google Play: upload to YouTube as public or unlisted, monetisation off, not age restricted, embeddable; paste the single video URL.
@@ -44,7 +62,8 @@
 - Register the music: append the film to `~/.claude/skills/mgpro/music/registry.json` with its choices (genre, bpm, meter, key, mode, palette, form, signature) and the measured part from `audio/fingerprint.py public/film.wav --bpm <bpm> --name <film>`. Without this the next film cannot avoid repeating it.
 - Check: `ffprobe -show_entries format_tags:stream_tags` (only handler names and language should remain) and `strings out.mp4 | grep -iE "lavf|remotion|claude|anthropic"` (nothing).
 - `grep -rnP "\x{2014}|\x{2013}"` over every file you wrote (em and en dashes).
-- Reply with the path, length, size, a shot list by seconds, what was fixed during review, what could not be verified (audio by ear), and leftovers (test accounts, running servers) with a question before deleting anything.
+- Check the decoded final file, not the draft or the studio: codec, pixel format, size, frame rate, frame count, length, the audio stream, the first and last frames and the frames around every scene boundary (`review.md`, Check the decoded export).
+- Reply with the path, length, size, a shot list by seconds, what was fixed during review, what could not be verified (audio by ear) in the status words of `review.md`, the credits of any downloaded model or generated image (`models.md`, `images.md`), and leftovers (test accounts, running servers) with a question before deleting anything.
 
 ## Keeping the user posted
 

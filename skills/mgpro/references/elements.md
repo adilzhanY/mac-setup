@@ -2,6 +2,14 @@
 
 Build these from the product's own tokens (colours, radius, font, its icon set). Hero size, isolated, floating. Shadows and glass on light brands; on dark brands, surfaces in the product's surface colour with a 1.5 px line border and the accent for everything that is alive. Code: `templates/kit/src/kit.tsx`; Bauwerk elements in `templates/examples/bauwerk/src/` (Search, Facade, HeroAct, PlanSheet, EndAct); torq elements in `templates/examples/torq/src/`.
 
+## One product across the film (from vizavi-motion)
+
+The parts float in isolation, but they belong to one believable app.
+
+- The data and the states carry over from shot to shot: the address searched in scene 1 is the building in scene 3, the set ticked in the logger is the one that counts in the rank. Never a new decorative card under a new title in every scene.
+- Keep the hierarchy of cards, panels and buttons, and one set of radii, shadows and line widths from the product's tokens throughout.
+- Example data is shown as an example, never as real properties or metrics of an existing service (`brief.md`, the product's own claim rules).
+
 # Light brand, desktop, AI (Bauwerk)
 
 ## Liquid glass panel
@@ -122,3 +130,33 @@ Split the mark's SVG path at each `M` into its parts (torq's vortex: six blades)
 ## Counter with a slot roll
 
 The old number moves up into a blur and fades while the new one rises from below out of a blur (12 frames expo out) inside an overflow hidden box that is taller than the glyphs (descenders and the cap height clip otherwise), plus a 6 percent bump on each change.
+
+# Light technical drawing brand, desktop and web, AI (Enogon)
+
+## Fast trace: the AI draws the plan in one line
+
+The first Enogon film laid the walls as chunky apricot blocks along a ruler, one wall at a time with a crosshair reporting each wall's id and length. The user wanted the wall drawing to look like Bauwerk's final ad: a fast traced line, not blocks (Enogon review, `lessons.md`). The rebuild's recipe (`PlanLayer.tsx` in `~/dev/enogon-video/src/`), about 3 s for a whole storey's plan at 60 fps:
+
+1. **One continuous line around the outer face.** Build the outline as one closed ring of points, keep the cumulative length of each segment, and draw the polyline up to length d each frame (`ringTo(d)`), so the line runs around the building without lifting. The whole ring takes 64 frames (about 1.07 s). The corner times (`OUTER_AT`) come from the cumulative lengths, so they are exact frames for the cue list.
+2. **Square corner handles.** As the line passes each corner, an 11 px square handle (paper fill, 1.8 px ink stroke, sharp corners like the brand) pops in with a small overshoot, then sits still. It is the CAD vocabulary of the product, and it marks the rhythm of the trace.
+3. **Inner walls.** Each inner wall draws as its own short line, 14 frames long, starting 6 frames after the previous one, overlapping the end of the outer ring (frame 228 against the ring's end at 236), so there is never a dead frame.
+4. **Door arcs.** Each door draws its leaf and a quarter arc opening to 90 degrees across the wall, 4 frames apart.
+5. **Room tags.** Mono labels (room name and area) pop at each room's centroid, 4 frames apart.
+6. **Lines thicken into walls.** At the end (frame 352) the hairlines grow to their real wall thickness with the brand's poche hatch, and the scan under them dims and leaves: the drawing has become the walls the 3D model will rise from.
+
+The trace starts 10 frames after its title and the walls rise in 3D straight after (frame 404 tilt, 458 rise): the process is shown in full but fast, never waited on (`craft.md`, Pacing). Sound **(heuristic)**: a soft recorded pen line under the ring, the corner handles as quiet ticks generated from `OUTER_AT`, no sound per inner wall (ambient at most; `sound.md`, section 7).
+
+Compared with Bauwerk's AI tracing above (three stacked glowing strokes and a spark, walls on 32nd notes): the same speed and order (outer walls, inner walls, door arcs, rooms), drawn in the brand's own language (black hairlines, square handles, mono tags, no glow) because Enogon's brand is technical drawing.
+
+## Box fold into a cube mark
+
+The resolve from a 3D model to an isometric cube logo without any blend (`logo-resolve.md`, The Enogon lesson). `PackBox` in `~/dev/enogon-video/src/Scene3D.tsx`:
+
+1. **The net is drawn flat** on the ground around the model: a floor square and four side panels of the cube's size, each growing out from its hinge over 14 frames (ease out). Every panel is opaque (`MeshBasicMaterial`, `DoubleSide`, a polygon offset so the ink edges win the depth test) and already in the logo's face colours: the side that will face south in paper white, east in Türkis 500, the hidden north and west in Türkis 300, the lid in apricot 500.
+2. **The four sides fold up** one after another, 7 frames apart, each a rotation of 90 degrees about its hinge driven by the `settle` spring (a closing box is a result, so a tiny overshoot is allowed). The model stays solid inside; nothing goes transparent.
+3. **The lid closes** last (it appears once the sides are up, at fold + 20 frames), on its own `settle` spring.
+4. **The ink edges** of every panel grow from 2.2 px to the logo's stroke width at the swap size (`4.01 / 123` of the projected cube height) over the lid's close, so the 3D cube and the flat logo match.
+5. **The model is removed** only once the lid has closed over it (30 frames after the lid starts).
+6. **The swap**: at the logo frame the 3D cube hands over to the flat SVG logo, sized to the cube's projected corners at that frame (`cubeRect.ts`), with no fade. Then the wordmark, the line and the URL enter one at a time while the mark holds.
+
+Timing in the rebuild: the export title leaves 4 frames before the net appears (the clean frame), and the pack from the first panel to the closed cube takes about 104 frames (1.7 s). The camera ends on the isometric view (a dolly zoom flattens the perspective) so the closed box is already the mark's hexagon. Works for any product that can be "packed" (a file, a model, an order); for other simple marks see `logo-resolve.md`, section 4.

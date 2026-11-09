@@ -7,7 +7,17 @@ grooves.py (rhythm) and the film's own music.json (the choices).
 from __future__ import annotations
 
 import numpy as np
-from pedalboard import Chorus, Compressor, Delay, Distortion, HighpassFilter, HighShelfFilter, LowShelfFilter, Pedalboard, Reverb
+from pedalboard import (
+    Chorus,
+    Compressor,
+    Delay,
+    Distortion,
+    HighpassFilter,
+    HighShelfFilter,
+    LowShelfFilter,
+    Pedalboard,
+    Reverb,
+)
 from scipy import ndimage, signal
 
 SR = 48_000
@@ -158,8 +168,77 @@ def adsr(n, a=0.005, d=0.1, s=0.7, r=0.1, hold=None):
 
 
 def perc(n, a=0.001, length=0.2):
+    """Attack then an exponential decay whose TIME CONSTANT is length: it is 20 dB down only after
+    2.3 x length and 40 dB down after 4.6 x length. For effects use dec(), which takes the d20."""
     t = np.arange(n) / SR
     return np.clip(t / max(a, 1e-5), 0, 1) * np.exp(-np.maximum(t - a, 0) / length)
+
+
+def dec(n, d20_ms, a_ms=0.5, hold_ms=0.0):
+    """Attack, optional hold, then a decay that is 20 dB down d20_ms after the peak: the part of a
+    sound a viewer hears (sfx/ANALYSIS.md measures every library sound this way)."""
+    t = np.arange(n) / SR * 1000
+    a = max(a_ms, 0.05)
+    tail = np.exp(-np.maximum(t - a - hold_ms, 0) * np.log(10) / max(d20_ms, 0.1))
+    return np.clip(t / a, 0, 1) * tail
+
+
+def glide(f0, f1, n, ms, curve="exp"):
+    """A frequency track from f0 to f1 over ms, then held: falling pings, rising pops, dopplers."""
+    k = min(n, max(1, int(SR * ms / 1000)))
+    head = np.geomspace(f0, f1, k) if curve == "exp" else np.linspace(f0, f1, k)
+    return np.concatenate([head, np.full(n - k, f1)])
+
+
+def pink(n, r=None):
+    """Pink noise (-3 dB per octave): smoother than white for whooshes, swings and room."""
+    w = (r or rng).standard_normal(n)
+    X = np.fft.rfft(w)
+    f = np.arange(len(X))
+    X[1:] /= np.sqrt(f[1:])
+    X[0] = 0
+    y = np.fft.irfft(X, n)
+    return y / (np.std(y) + 1e-12)
+
+
+def modal(n, freqs, d20s_ms, amps, r=None, detune=0.0):
+    """A struck object as a sum of decaying partials (modal synthesis). Each partial its own d20, so
+    high partials can die faster than low ones (wood) or ring (glass, metal). detune in cents adds
+    a slightly mistuned twin per partial: the beating of a real bell or plate."""
+    r = r or rng
+    out = np.zeros(n)
+    for f, d, a in zip(freqs, d20s_ms, amps):
+        if f >= SR * 0.45:
+            continue
+        ph = r.uniform(0, 1)
+        out += a * sine(f, n, ph) * dec(n, d, 0.2)
+        if detune:
+            out += 0.5 * a * sine(f * 2 ** (detune / 1200), n, ph + 0.25) * dec(n, d, 0.2)
+    return out
+
+
+def repitch(x, cents):
+    """Play a sound faster or slower, like a sampler: pitch and length move together."""
+    if abs(cents) < 0.5:
+        return x
+    n = x.shape[-1]
+    m = max(8, int(round(n / 2 ** (cents / 1200))))
+    return signal.resample(x, m, axis=-1)
+
+
+def spread(mono_a, mono_b, width):
+    """Stereo from two decorrelated takes of the same layer: a is the middle, b the sides. width is
+    what sfx_catalog measures (side RMS over mid RMS): 0 is mono, 1 is very wide."""
+    w = np.asarray(width, float)
+    return np.stack([mono_a + w * mono_b, mono_a - w * mono_b]) / (1 + 0.5 * w)
+
+
+def harmonics(x, cut=120, amount=0.3, drive=3.0):
+    """Lets the low end survive phone and laptop speakers, which give little under 150 Hz: the part
+    under cut is saturated, and only the harmonics it makes (cut to 4 x cut) are added back."""
+    lo = lp(x, cut, 4)
+    h = bp(np.tanh(drive * lo / (np.abs(lo).max() + 1e-9)) * np.abs(lo).max(), cut, cut * 4, 2)
+    return x + amount * h
 
 
 def fade(x, ms=4):
@@ -315,11 +394,12 @@ def band_share(x, lo, hi):
     return float(S[(f >= lo) & (f < hi)].sum() / (S.sum() + 1e-12))
 
 
-def balance(x, top=(0.03, 0.10), low=(0.15, 0.55), verbose=True):
-    """Keeps the tonal balance in the range finished ads sit in: 3 to 10 percent of the energy above
-    8 kHz (more is hiss and fatigue) and 15 to 55 percent under 150 Hz (less sounds thin on a phone
-    and small on a TV). Corrects with gentle shelves and says what it did. A genre that wants to
-    sit outside (lofi is darker) can pass its own ranges."""
+def balance(x, top=(0.001, 0.015), low=(0.15, 0.55), verbose=True):
+    """Keeps the tonal balance in the range finished ads sit in: 0.1 to 1.5 percent of the energy
+    above 8 kHz (professional films keep a median 0.95 percent above 6 kHz; the first AI films sat at
+    1.5 to 3.4) and 15 to 55 percent under 150 Hz. Corrects with gentle shelves and says what it did.
+    The overall brightness is set later by master(tone=...). A genre that wants to sit outside can
+    pass its own ranges."""
     for _ in range(6):
         hi, lo_ = band_share(x, 8000, SR / 2), band_share(x, 20, 150)
         moves = []
@@ -360,12 +440,54 @@ def limit(x, ceiling_db):
     return x * np.minimum(g, held)
 
 
-def master(mix, lufs=-14.0, tp=-1.0):
-    """High pass, glue, loudness to target, true peak under the ceiling. Returns the master."""
+def darken(x, centroid=1800.0, rolloff=4000.0, verbose=True):
+    """Moves the measured median spectral centroid and 85 percent rolloff (measured as filmstats.tone
+    does) toward the professional medians, 1.8 kHz and 4 kHz, with gentle shelves: down when brighter,
+    up only when under 60 percent of the target. The first AI films measured 2.3 to 3.0 kHz and 5.7
+    to 7.5 kHz."""
+    import librosa
+
+    from filmstats import SR_A, tone
+
+    def measure(y):
+        return tone(librosa.resample(stereo(y).mean(0), orig_sr=SR, target_sr=SR_A))
+
+    m = measure(x)
+    c0, r0 = m["centroid_median_hz"], m["rolloff_median_hz"]
+    for _ in range(10):
+        c, r = m["centroid_median_hz"], m["rolloff_median_hz"]
+        if c < centroid * 0.6:  # far too dark for a small speaker (pro p10 is 980 Hz): open it a little
+            x = fx(x, HighShelfFilter(cutoff_frequency_hz=1500, gain_db=1.5))
+            m = measure(x)
+            continue
+        if c <= centroid * 1.06 and r <= rolloff * 1.12:
+            break
+        moves = [HighShelfFilter(cutoff_frequency_hz=2500 if c > centroid * 1.06 else 5000, gain_db=-1.5)]
+        if r > rolloff * 1.12:
+            moves.append(HighShelfFilter(cutoff_frequency_hz=6000, gain_db=-1.5))
+        x = fx(x, *moves)
+        m = measure(x)
+    if verbose:
+        print(f"  tone: centroid {c0:.0f} to {m['centroid_median_hz']:.0f} Hz, rolloff {r0:.0f} to {m['rolloff_median_hz']:.0f} Hz "
+              f"(targets {centroid:.0f} and {rolloff:.0f})")
+    return x
+
+
+def master(mix, lufs=-14.0, tp=-1.0, tone=(1800.0, 4000.0), bass_harmonics=0.3):
+    """High pass, harmonics for small speakers, tone toward the professional medians, glue, loudness
+    to target, true peak under the ceiling. tone=None keeps the mix's own brightness."""
     import pyloudnorm
 
-    mix = fx(mix, HighpassFilter(28), Compressor(threshold_db=-16, ratio=1.8, attack_ms=25, release_ms=160))
+    mix = fx(mix, HighpassFilter(28))
+    if bass_harmonics:
+        mix = harmonics(mix, 120, bass_harmonics)
+    if tone:
+        mix = darken(mix, *tone)
     meter = pyloudnorm.Meter(SR)
+    # Gain stage first, so the glue only touches the loudest peaks whatever level the mix came in
+    # at. Compressing an unstaged mix at a fixed -16 dBFS squashed the first films to 3.6 to 4.2 LU.
+    mix *= 10 ** ((lufs - 8 - meter.integrated_loudness(mix.T)) / 20)
+    mix = fx(mix, Compressor(threshold_db=lufs - 2, ratio=1.8, attack_ms=25, release_ms=160))
     for _ in range(8):
         mix *= 10 ** ((lufs - meter.integrated_loudness(mix.T)) / 20)
         if true_peak(mix) <= tp - 0.05:

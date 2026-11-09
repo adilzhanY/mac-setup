@@ -293,9 +293,13 @@ genre(
 )
 
 
-def hits(pattern: str, start: float, step: float, swing: float = 0.5, steps_per_beat: int = 4, humanize: float = 0.0, rng=None):
+def hits(pattern: str, start: float, step: float, swing: float = 0.5, steps_per_beat: int = 4, humanize: float = 0.0, rng=None,
+         lock=(), late: float = 0.3, vel: float = 0.06):
     """(time in seconds, velocity) for every hit in a pattern starting at start. step is one
-    step's length in seconds. Swing delays the second step of each pair (16ths in 4/4)."""
+    step's length in seconds. Swing delays the second step of each pair (16ths in 4/4).
+    humanize is the spread (standard deviation, seconds) of each hit's timing, leaning late by
+    late x humanize (early deviations read worse than late ones); steps in lock stay exact (the
+    structural downbeat). vel is the velocity spread."""
     out = []
     for i, ch in enumerate(pattern):
         v = VEL.get(ch, 0.0)
@@ -304,9 +308,10 @@ def hits(pattern: str, start: float, step: float, swing: float = 0.5, steps_per_
         t = start + i * step
         if steps_per_beat % 2 == 0 and i % 2 == 1:
             t += (2 * swing - 1) * step
-        if humanize and rng is not None:
-            t += rng.normal(0, humanize)
-            v *= 1 + rng.normal(0, 0.06)
+        if rng is not None:
+            if humanize and i not in lock:
+                t += rng.normal(late * humanize, humanize)
+            v *= 1 + rng.normal(0, vel)
         out.append((t, max(0.05, v)))
     return out
 

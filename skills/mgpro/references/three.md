@@ -20,6 +20,22 @@ Example code: `templates/kit/src/camera.ts` (orbit camera, projection, corner pi
 
 Build the same camera in the DOM (`threeCamera(cam)` in camera.ts: a `PerspectiveCamera` with the same parameters, `updateMatrixWorld`, `updateProjectionMatrix`) and `project()` world points to pixels. Use it for pins on roofs, room labels, ripples. Labels stay upright and sharp because they are DOM.
 
+### World space and screen space (from vizavi-motion)
+
+- Keep world space UI and screen space overlays explicitly apart. When the cursor works on an object in the world, compute its screen point from the current projection of the object's anchor, taking the camera, the viewport, the aspect ratio and the frame size into account. When the cursor lives entirely in screen space, test its target in that same screen space. Never mix CSS pixels, video frame coordinates and world units without converting.
+- A screen space label (a part indicator, a caption) keeps its position and look while the camera moves. Labels on world objects follow the projection; check their margins, overlaps, depth and what happens when the anchor leaves the camera's view.
+- A panel with volume must not cover by accident a cursor that is staged as an overlay, nor cut through required text.
+
+## One interface in 2D, 2.5D and 3D (from vizavi-motion)
+
+| Mode | What must really change |
+|---|---|
+| 2D | Flat panels, cards, buttons and content. No volume faked by a random thickness; the cursor's action and the change of state stay the centre. |
+| 2.5D | The same flat panels spread out in depth. The camera reveals their relative placement, perspective, overlaps and parallax. The panels get no real sides or extrusion. |
+| 3D | Recognisable objects get real geometric thickness, edges and side faces. Light, normals, shadows and a spatial orbit or fly through prove the volume, not just scale or a drop shadow. |
+
+When a film moves between these modes, carry the same objects, layout anchors, colours, content and the operation's result across, so the viewer sees one interface change its spatial model (`styles.md` has a demo that does this). A `translateZ` or an extrusion parameter in the code does not prove the visual result: check the frames.
+
 ## Corner pin (After Effects technique in code)
 
 A plane seen through a perspective camera is a projective map of the plane, which CSS `matrix3d` can express exactly. Project the four corners of a 2D layer's rectangle (placed on the 3D ground) and solve the 8 unknowns of the homography (`cornerPin(src, dst)` in camera.ts, Gaussian elimination), then `transform: matrix3d(...)` with `transformOrigin: 0 0`. The SVG plan, its AI glow and its traced lines stay glued to the ground while the camera dives and tilts. Hand the job over to real 3D geometry before the tilt gets steep (the DOM layer cannot be occluded by 3D walls).
@@ -84,6 +100,7 @@ A cylinder's axis is y. To lay a barbell plate along the bar (x), rotate its gro
 - Motion smear for a fast object: draw two or three transparent copies at the object's positions 0.45, 0.9 and 1.35 frames earlier (opacity 0.28, 0.13, 0.06), only while it moves. Far cheaper than `CameraMotionBlur` over a whole act.
 - Impacts: a camera shake as a film offset, `camera.setViewOffset(1920, 1080, dx, dy, 1920, 1080)`, with dx, dy = amp x e^(-k/5.5) x sin(k x 1.9), amp 16 px for a plate slam, 4 for a click. It jolts the image without moving the camera, so the composition stays.
 - A plate landing: it accelerates (t squared over 10 frames from 1.7 m out) and recoils 1.2 cm with a damped bounce.
+- What the blur must show, and when depth of field or a radial blur fits instead: `craft.md`, Optics.
 
 ## Lit progress along a path
 
@@ -96,3 +113,7 @@ Rays, glows, sparks and labels around a 3D object are DOM or SVG layers position
 ## 3D to 2D handoff
 
 See `transitions.md`: transform the canvas layer toward the 2D target, using `pxPerMetre(camera, centre)` to compute the exact scale at which the 3D object matches the 2D drawing.
+
+## Ready made models
+
+When a downloaded GLB or glTF is the right call (a device, a rigged character, a scan), `models.md` has the vetted sources, the licence traps, the five checks before the model enters a scene (scale, pivot, materials, textures, a laptop's hinge) and the credit line for the reply.

@@ -1,0 +1,125 @@
+{
+ "film": "enogon",
+ "genre": "bossa_electronica",
+ "bpm": 112.5,
+ "key": "F",
+ "mode": "ionian",
+ "mood": "dreamy",
+ "seed": 2911,
+ "length": 25.07,
+ "character": "wood",
+ "signature": "a live bossa kit on rim and shaker, upright bass, guitar comping and a pizzicato hook; the rooms fill as marimba notes; the logo lands on a rising C F A on vibes over a felt Fmaj7",
+ "form": [
+  {
+   "name": "hook",
+   "bars": 1.25,
+   "energy": 0.5,
+   "parts": [
+    "chords",
+    "bass",
+    "shaker",
+    "pad"
+   ]
+  },
+  {
+   "name": "trace",
+   "bars": 2.25,
+   "energy": 0.65,
+   "parts": [
+    "chords",
+    "bass",
+    "rim",
+    "shaker",
+    "pad"
+   ]
+  },
+  {
+   "name": "build",
+   "bars": 3,
+   "energy": 0.85,
+   "parts": [
+    "drums",
+    "bass",
+    "chords",
+    "pad",
+    "hook_sparse",
+    "shaker"
+   ]
+  },
+  {
+   "name": "edit",
+   "bars": 1.5,
+   "energy": 0.7,
+   "parts": [
+    "drums",
+    "bass",
+    "chords",
+    "hook_sparse",
+    "pad",
+    "shaker"
+   ]
+  },
+  {
+   "name": "export",
+   "bars": 1.5,
+   "energy": 0.9,
+   "hero": true,
+   "parts": [
+    "drums",
+    "bass",
+    "chords",
+    "pad",
+    "hook",
+    "fill",
+    "shaker"
+   ]
+  },
+  {
+   "name": "logo",
+   "bars": 2.25,
+   "energy": 0.5,
+   "parts": [
+    "chords",
+    "pad",
+    "bass"
+   ]
+  }
+ ],
+ "beat": true,
+ "humanize_ms": 8,
+ "opening": "soft",
+ "dips": 0,
+ "lra": 6.0,
+ "samples": {
+  "enabled": true,
+  "jobs": [
+   "tap",
+   "click",
+   "card",
+   "swish"
+  ],
+  "layer": []
+ },
+ "palette": {
+  "kick": "acoustic",
+  "rim": "rim",
+  "shaker": "shaker",
+  "keys": "nylon",
+  "pad": "strings",
+  "lead": "pizz",
+  "bass": "upright"
+ },
+ "hook": {
+  "seed": 5,
+  "contour": "rise",
+  "notes": 4,
+  "low": 72
+ },
+ "instruments": "samples",
+ "tone": {
+  "centroid": 1800,
+  "rolloff": 4000
+ },
+ "bed": 0.5,
+ "story_duck_db": 6.0
+}

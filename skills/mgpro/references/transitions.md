@@ -55,12 +55,22 @@ The payoff block moves up 300 px and scales to 0.55 while fading, and the report
 
 ## Out to the end card
 
-Everything scales to 0.92, blurs 10 px and fades over 28 frames; the end card is on a white stage. The logo builds: three blocks scaleY from their base with spring pop, 5 frames apart, each with a tonal tap (marimba in key). The wordmark rises out of a clipping slot (overflow hidden, translateY 110 percent to 0, blur clears). Tagline word by word, then the URL pill, then the cursor glides to the URL and turns into the hand. The whole card drifts to 102.5 percent scale over 4 s.
+The end card's mark follows `logo-resolve.md`: the exit below finishes, at least one clean frame, then the mark's own build. Everything scales to 0.92, blurs 10 px and fades over 28 frames; the end card is on a white stage. The logo builds: three blocks scaleY from their base with spring pop, 5 frames apart, each with a tonal tap (marimba in key). The wordmark rises out of a clipping slot (overflow hidden, translateY 110 percent to 0, blur clears). Tagline word by word, then the URL pill, then the cursor glides to the URL and turns into the hand. The whole card drifts to 102.5 percent scale over 4 s.
+
+## Passing an object between scenes (from vizavi-motion)
+
+- Match its position on screen, its size and its state on both sides of the cut. Leave no double and no ghost of it behind.
+- A result grows out of the element that caused it; cards spread out on soft arcs.
+- A morph changes the real dimensions of the shape and the layout. It never stretches the whole UI together with its text and radii.
+- Keep the interface's identity when it goes from a flat view to a spatial one (`three.md`, One interface in 2D, 2.5D and 3D).
+- Design each transition together with both of its scenes; for match cuts and masks see `storyboard.md`.
 
 ## Do not
 
 - Cross-fade two full scenes (looks like an edited video, not motion design).
 - Fade 3D geometry with transparency over a changing background (ghost overlaps).
+- Resolve into the logo with a crossfade or a see-through morph. The Enogon house faded through a growing cube like an x-ray and the user called it the worst thing in the film; the logo arrives as one opaque object after a clean frame (`logo-resolve.md`).
+- Fade the cursor in or out in place, or pull the music down to make a moment quiet: both are blends between states, not transformations (`interaction.md`, `sound.md` section 9).
 - Cut off the beat.
 - Leave a scene completely static while waiting for the next cut.
 
